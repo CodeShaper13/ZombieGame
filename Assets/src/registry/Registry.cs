@@ -7,13 +7,18 @@ public class Registry {
 
     public static RegisteredObject unitSoldier;
     public static RegisteredObject unitArcher;
-    public static RegisteredObject unitScout;
+    public static RegisteredObject unitBuilder;
 
-    public static RegisteredObject projectileBullet;
+    public static RegisteredObject projectileArrow;
 
-    public static RegisteredObject buildingFlag;
-    public static RegisteredObject buildingWall;
+    public static RegisteredObject buildingCamp;
     public static RegisteredObject buildingCannon;
+    public static RegisteredObject buildingFlag;
+    public static RegisteredObject buildingProducer;
+    public static RegisteredObject buildingStoreroom;
+    public static RegisteredObject buildingTrainingHouse;
+    public static RegisteredObject buildingWorkshop;
+    public static RegisteredObject buildingWall;
 
     /// <summary> If true, the registry has been initialized. </summary>
     private static bool ranBootstrap;
@@ -63,16 +68,24 @@ public class Registry {
 
         // Units are ids 1 - 63.
         Registry.unitSoldier = register(1, References.list.prefabUnitSoldier);
+        Registry.unitArcher = register(2, References.list.prefabUnitArcher);
+        Registry.unitBuilder = register(3, References.list.prefabUnitBuilder);
 
         // Harvestable ids are 64 - 95.
 
         // Projectile ids are 96-127.
-        Registry.projectileBullet = register(96, References.list.prefabProjectileBullet);
+        Registry.projectileArrow = register(97, References.list.prefabProjectileArrow);
 
         // Buildings are ids 128 - 255.
-        Registry.buildingFlag = register(128, References.list.prefabBuildingFlag);
-        Registry.buildingWall = register(129, References.list.prefabBuildingWall);
-//        Registry.buildingCannon = register(130, References.list.prefabBuildingCannon);
+        Registry.buildingCamp = register(128, References.list.prefabBuildingCamp);
+        Registry.buildingCannon = register(129, References.list.prefabBuildingCannon);
+        Registry.buildingFlag = register(130, References.list.prefabBuildingFlag);
+        Registry.buildingProducer = register(131, References.list.prefabBuildingProducer);
+        Registry.buildingStoreroom = register(132, References.list.prefabBuildingStoreroom);
+        Registry.buildingTrainingHouse = register(133, References.list.prefabBuildingTrainingHouse);
+        Registry.buildingWorkshop = register(134, References.list.prefabBuildingWorkshop);
+
+        Registry.buildingWall = register(200, References.list.prefabBuildingWall);
 
         return this;
     }

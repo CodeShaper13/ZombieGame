@@ -1,93 +1,155 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
 
-public abstract class UnitBase : LivingObject {
+[RequireComponent(typeof(NavMeshAgent))]
+public abstract class UnitBase : SidedEntity {
 
-    private NavMeshAgent agent;
+    public MoveHelper moveHelper;
+    private ITask task;
+    public AttackBase attack;
 
-    /// <summary> The transfrom of the head object. </summary>
-    public Transform head;
+    private Vector3? overrideMovementDestination;
+    private float overrideMovementStopDis;
 
-    private SidedEntity closest;
-    public GunBase weapon;
+    public UnitStats unitStats;
+    /// <summary> The position of the unit during the last frame. </summary>
+    private Vector3 lastPos;
 
     public override void onAwake() {
         base.onAwake();
 
-        this.agent = this.GetComponent<NavMeshAgent>();
-
-        if (this.weapon != null) {
-            //this.weapon = GameObject.Instantiate(this.weapon);
-            //this.weapon.transform.parent = this.head;
-            this.weapon.setHoldLocation(this);
-        }
+        this.moveHelper = new MoveHelper(this);
+        this.attack = this.createAttackMethod();
     }
 
-    public override void onUpdate() {
-        base.onUpdate();
+    public override void onStart() {
+        base.onStart();
 
-        this.closest = this.getClosestEnemyObject();
+        this.unitStats = new UnitStats(this.getData());
+        this.setTask(null);
+    }
 
-        bool isTargetVisible = (this.closest != null && this.canSeeTarget(this.closest));
+    public override void onUpdate(float deltaTime) {
+        base.onUpdate(deltaTime);
 
-        // Rotate head to face target, or ahead if there is none.
-        if (isTargetVisible) {
-            this.head.LookAt(this.closest.transform.position); // Quaternion.Slerp(this.head.rotation, rot, 10 * Time.deltaTime); //Smooth rot makes bullet firing difficult...
-        }
-        else {
-            this.head.rotation = this.transform.rotation;
-        }
-
-        // Behavior.
-        if (isTargetVisible && this.weapon.isInRange(this.closest)) {
-            // We can see the enemy and our weapon is in range, stand still and fire.
-            this.weapon.tryFire();
-            this.agent.SetDestination(this.transform.position);
-        }
-        else {
-            if (this.closest != null) {
-                // Move towards the enemy to get within weapon range and/or to get them in line of sight.
-                this.agent.SetDestination(this.closest.transform.position);
+        if(this.overrideMovementDestination != null) {
+            if(Vector3.Distance(this.getFootPos(), (Vector3)this.overrideMovementDestination) <= this.overrideMovementStopDis + 0.5f) {
+                this.overrideMovementDestination = null;
             }
-            else {
-                this.agent.SetDestination(this.transform.position);
+        }
+        else if(this.task != null) {
+            bool continueExecuting = this.task.preform();
+            if(!continueExecuting) {
+                this.setTask(null, true); // Set unit to idle.
             }
         }
 
-        // Update/use weapon.
-        this.weapon.updateGun();
+        // Update stats.
+        if(this.transform.position != this.lastPos) {
+            this.unitStats.distanceWalked.increase(Vector3.Distance(this.transform.position, this.lastPos));
+        }
+        this.lastPos = this.transform.position;
+
+        this.unitStats.timeAlive.increase(Time.deltaTime);
     }
 
-    public override Vector3 getFootPos() {
+    public override void drawDebug() {
+        base.drawDebug();
+
+        // Draw a debug arrow pointing forward.
+        GLDebug.DrawLineArrow(this.getPos(), this.getPos() + this.transform.forward, 0.5f, 20, Color.blue, 0, true);
+        this.moveHelper.drawDebug();
+
+        if(this.overrideMovementDestination == null && this.task != null) {
+            this.task.drawDebug();
+        }
+    }
+
+    public override void colorObject() {
+        base.colorObject();
+
+        Color color = this.getTeam().getTeamColor();
+        this.GetComponent<MeshRenderer>().material.color = color;
+    }
+
+    public virtual Vector3 getFootPos() {
         return this.transform.position - new Vector3(0, -1, 0);
     }
 
-    public bool canSeeTarget(SidedEntity target) {
-        RaycastHit hit;
-        Transform sightTrans = this.head; // Change to getter?
-        //int layerMask = ~(1 << 8);
-        //Soldier.setLayer(this.gameObject, 8);
-        if (Physics.Linecast(sightTrans.position, target.transform.position, out hit)) { //, layerMask)) {
-            UnitSoldier unit = hit.transform.GetComponent<UnitSoldier>();
-            if (unit != null && unit.getTeam() != this.getTeam()) {
-                this.debugLine(sightTrans.position, hit.point, 1);
-                return true;
+    public override float getSizeRadius() {
+        return 0.5f;
+    }
+
+    public abstract EntityBaseStats getData();
+
+    /// <summary>
+    /// Sets the units task.  Pass null to set the current task to idle.
+    /// </summary>
+    public void setTask(ITask newTask, bool forceCancelPrevious = false) {
+        // Explicitly setting a task while a unit is moving stops it's walk.
+        this.overrideMovementDestination = null;
+
+        if(this.task == null || (forceCancelPrevious || (this.task != null && this.task.cancelable()))) {
+            // If there is an old task, call finish on the instance.
+            if(this.task != null) {
+                this.task.onFinish();
             }
-            else {
-                this.debugLine(sightTrans.position, hit.point, 0);
-                return false;
-            }
-        }
-        else {
-            this.debugLine(sightTrans.position, sightTrans.forward * 100, -1);
-            return false;
+
+            this.task = (newTask == null) ? new TaskAttackNearby(this) : newTask;
+            //this.task = (newTask == null) ? new TaskIdle(this) : newTask;
         }
     }
 
-    //-1 = red, 0 = yellow, 1 = green
-    private void debugLine(Vector3 start, Vector3 end, int color) {
-        if (true) {
-            Debug.DrawLine(start, end, color < 0 ? Color.red : color == 0 ? Color.yellow : Color.green);
+    /// <summary>
+    /// Returns the Unit's current task.  This will never be null.
+    /// </summary>
+    public ITask getTask() {
+        return this.task;
+    }
+
+    /// <summary>
+    /// Moves a unit to a certain point.  This overrides their current task as long as it is cancelable.
+    /// </summary>
+    public void walkToPoint(Vector3 point, int partySize) {
+        if(this.task.cancelable()) {
+            this.overrideMovementStopDis = partySize <= 1 ? 0f : (partySize <= 3 ? 1f : 3f); // TODO spread out stopping points.
+            this.overrideMovementDestination = point;
+
+            // Move the units to the destination, making sure they don't pile to close.
+            this.moveHelper.setDestination(point, this.overrideMovementStopDis);
+        }
+    }
+
+    public virtual AttackBase createAttackMethod() {
+        return new AttackMelee(this);
+    }
+
+    public abstract int getAttackAmount();
+
+    public override float getHealthBarHeight() {
+        return 1.95f;
+    }
+
+    /// <summary>
+    /// Damages the passed object and returns it.  Null will be returned if the object is destroyed.
+    /// This method will also increase stats if needed.
+    /// </summary>
+    public SidedEntity damageTarget(SidedEntity obj) {
+        int damage = this.getAttackAmount();
+        this.unitStats.damageDelt.increase(damage);
+
+        if(obj.damage(this, damage)) {
+            // obj was killed.
+            if(obj is BuildingBase) {
+                this.unitStats.buildingsDestroyed.increase();
+            }
+            else if(obj is UnitBase) {
+                this.unitStats.unitsKilled.increase();
+            }
+            return null;
+        }
+        else {
+            return obj;
         }
     }
 }

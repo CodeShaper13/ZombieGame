@@ -3,37 +3,44 @@ using UnityEngine.Networking;
 
 public class CustomNetworkManager : NetworkManager {
 
-    public Transform[] teamSpawnPoints;
+    private MapData mapData;
 
-    private AvailableTeams availibleTeams;
+    public AvailableTeams availibleTeams;
 
     public override void OnStartServer() {
         base.OnStartServer();
 
-        this.availibleTeams = new AvailableTeams(2);
+        this.mapData = GameObject.FindObjectOfType<MapData>();
+
+        this.availibleTeams = new AvailableTeams(this.mapData.teamBaseData.Length);
+        foreach(TeamBaseData data in this.mapData.teamBaseData) {
+            Team.getTeamFromEnum(data.team).setOrgin(data.orginPoint);
+        }
     }
 
     public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId) {
         Team team = this.availibleTeams.getAvailableTeam();
         int teamId = team.getTeamId();
-
-        Vector3 startPos;
-        if (teamId > this.teamSpawnPoints.Length) {
-            startPos = Vector3.zero;
-        } else {
-            startPos = this.teamSpawnPoints[teamId - 1].position;
-        }
-        GameObject playerObject = GameObject.Instantiate(this.playerPrefab, startPos, Quaternion.identity);
+        
+        GameObject playerObject = GameObject.Instantiate(this.playerPrefab, team.getOrginPos(), Quaternion.identity);
         Player player = playerObject.GetComponent<Player>();
         NetworkServer.AddPlayerForConnection(conn, playerObject, playerControllerId);
 
         player.team = team;
         player.RpcSetTeam(teamId);
+
+        MessageChangeGameState msg = new MessageChangeGameState(Map.instance.gameState);
+        conn.Send(msg.getID(), msg);
+
+        Map.instance.allPlayers.Add(player);
     }
 
-    public override void OnServerRemovePlayer(NetworkConnection conn, PlayerController player) {
-        base.OnServerRemovePlayer(conn, player);
+    public override void OnServerRemovePlayer(NetworkConnection conn, PlayerController playerController) {
+        base.OnServerRemovePlayer(conn, playerController);
 
-        this.availibleTeams.freeTeam(player.gameObject.GetComponent<Player>().team);
+        Player player = playerController.gameObject.GetComponent<Player>();
+        this.availibleTeams.freeTeam(player.team);
+
+        Map.instance.allPlayers.Remove(player);
     }
 }

@@ -5,7 +5,7 @@ public class UIPlaceObjectButton {
 
     private Button button;
     private Text text;
-    private PlaceableObject placeableObj;
+    public PlaceableObject placeableObj;
 
     public UIPlaceObjectButton(Button button, PlaceableObject obj) {
         this.button = button;

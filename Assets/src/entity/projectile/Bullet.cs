@@ -3,16 +3,12 @@ using UnityEngine.Networking;
 
 public class Bullet : MapObject {
 
-    public override Vector3 getFootPos() {
-        return this.transform.position;
-    }
-
     private void OnCollisionEnter(Collision collision) {
         if(this.isServer) {
             LivingObject hitObject = collision.gameObject.GetComponent<LivingObject>();
             if (hitObject != null) {
                 if (!hitObject.isDead()) {
-                    hitObject.damage(10);
+                    hitObject.damage(this, 10);
 
                     //if (nowDead) {
                     //    Rigidbody rb = hitObject.gameObject.GetComponent<Rigidbody>();

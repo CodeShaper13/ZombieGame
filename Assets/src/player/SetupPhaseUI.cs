@@ -14,12 +14,12 @@ public class SetupPhaseUI : MonoBehaviour {
     // Use this for initialization
     private void Awake() {
         PlaceableObject[] objs = new PlaceableObject[] {
-            new PlaceableObject("Soldier", Registry.unitSoldier),
-            new PlaceableObject("Archer", Registry.unitArcher),
-            new PlaceableObject("Scout", Registry.unitScout),
-            new PlaceableObject("Cannon", Registry.buildingCannon),
-            new PlaceableObject("Wall", Registry.buildingWall),
-            new PlaceableObject("Flag", Registry.buildingFlag),
+            new PlaceableObject("Soldier", Registry.unitSoldier, 10),
+            new PlaceableObject("Archer", Registry.unitArcher, 5),
+            new PlaceableObject("Tower", Registry.buildingCannon, 2),
+            new PlaceableObject("Flag", Registry.buildingFlag, 4),
+            new PlaceableObject("Builder", Registry.unitBuilder, 10),
+            null,
             null,
             null,
             null
@@ -45,8 +45,31 @@ public class SetupPhaseUI : MonoBehaviour {
         this.buttonCallback(0);
     }
 
-    public int getSelectedIndex() {
-        return this.selected;
+    private void Update() {
+        foreach(UIPlaceObjectButton obj in this.buttonList) {
+            if(obj.placeableObj != null) {
+                obj.setText(obj.placeableObj.displayText + " x" + obj.placeableObj.getCount());
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns null if nothing is selected.
+    /// </summary>
+    public PlaceableObject getSelectedObject() {
+        if(this.selected == -1) {
+            return null;
+        }
+        PlaceableObject placeableObject = this.buttonList[this.selected].placeableObj;
+        if(placeableObject == null) {
+            return null;
+        } else {
+            return placeableObject;
+        }
+    }
+
+    public void func(int index, bool flag) {
+        this.buttonList[index].setInteractable(flag);
     }
 
     private void buttonCallback(int buttonIndex) {

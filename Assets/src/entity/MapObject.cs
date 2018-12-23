@@ -1,9 +1,18 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
-public abstract class MapObject : NetworkBehaviour {
+[DisallowMultipleComponent]
+public abstract class MapObject : NetworkBehaviour, IDrawDebug {
 
-    protected Map map;
+    [HideInInspector]
+    public Map map;
+
+    /// <summary> Objects marked as immutable are destroyed via a button or edited (rotated, etc.) </summary>
+    [SerializeField] // Used so it can be set in the inspecter.
+    [SyncVar]
+    private bool immutable;
+    private Guid guid;
 
     private void Awake() {
         this.map = Map.instance;
@@ -18,7 +27,35 @@ public abstract class MapObject : NetworkBehaviour {
     public override void OnStartServer() {
         base.OnStartServer();
 
+        this.guid = Guid.NewGuid();
+
         this.onServerInit();
+    }
+
+    public override void OnStartClient() {
+        base.OnStartClient();
+        print("onStartClient");
+        if(this.isClient) {
+            print("isClient = true");
+        }
+        if(!this.isServer) {
+            Map.instance.mapObjects.Add(this);
+            print("isServer = true");
+        }
+    }
+
+    public override bool OnSerialize(NetworkWriter writer, bool forceAll) {
+        if(forceAll) {
+            writer.Write(this.guid.ToString());
+            return true;
+        }
+        return false;
+    }
+
+    public override void OnDeserialize(NetworkReader reader, bool initialState) {
+        if(initialState) {
+            this.guid = new Guid(reader.ReadString());
+        }
     }
 
     /// <summary>
@@ -30,7 +67,22 @@ public abstract class MapObject : NetworkBehaviour {
 
     public virtual void onStart() { }
 
-    public virtual void onUpdate() { }
+    public virtual void onUpdate(float deltaTime) { }
 
-    public abstract Vector3 getFootPos();
+    public virtual void drawDebug() { }
+
+    public Vector3 getPos() {
+        return this.transform.position;
+    }
+
+    public Guid getGuid() {
+        return this.guid;
+    }
+
+    /// <summary>
+    /// Returns true if the object is immutable.
+    /// </summary>
+    public bool isImmutable() {
+        return this.immutable;
+    }
 }

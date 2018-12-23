@@ -11,7 +11,7 @@ public class BuildingFlag : BuildingBase {
     private void Update() {
         this.flagRotatePoint.rotation = Quaternion.Euler(
             0f,
-            maxRotation * Mathf.Sin(Time.time * speed),
+            (maxRotation * Mathf.Sin(Time.time * speed)) + 90,
             0f);
     }
 
@@ -21,7 +21,19 @@ public class BuildingFlag : BuildingBase {
         this.flagCloth.material.color = this.getTeam().getTeamColor();
     }
 
-    public override Vector3 getFootPos() {
-        return this.transform.position + new Vector3(0, -0.5f, 0);
+    public override int getMaxHealth() {
+        return 100;
+    }
+
+    public override Vector2 getFootprintSize() {
+        return new Vector2(0.2f, 0.2f);
+    }
+
+    public override float getHealthBarHeight() {
+        return 4.5f;
+    }
+
+    public override BuildingData getData() {
+        return Constants.BD_CAMP;
     }
 }

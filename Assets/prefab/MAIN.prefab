@@ -66,14 +66,35 @@ MonoBehaviour:
   networkManager: {fileID: 0}
   prefabUnitSoldier: {fileID: 1047585014655104, guid: 2ce1932ee4edba04da5740b456c7c16e,
     type: 2}
-  prefabProjectileBullet: {fileID: 1413430330559492, guid: 5e520607acf02f14eb3fcd80aa25e593,
+  prefabUnitArcher: {fileID: 1885916268208600, guid: f9acebc97660b6745ae9b7ef22580af3,
     type: 2}
-  prefabBuildingFlag: {fileID: 0}
-  prefabBuildingWall: {fileID: 0}
-  prefabBuildingCannon: {fileID: 0}
+  prefabUnitBuilder: {fileID: 1745107307414210, guid: 068c57d8808398c4a970081c4b693e6a,
+    type: 2}
+  prefabProjectileArrow: {fileID: 1322728728439558, guid: 1c4297cfc8fd92a45be48d0f8c561d21,
+    type: 2}
+  prefabBuildingFlag: {fileID: 1859688848056336, guid: 03490d3660e161e4e979e32fd05e1eee,
+    type: 2}
+  prefabBuildingWall: {fileID: 1724113632208924, guid: 0d2c2e025b271b545b009d59d29a79a6,
+    type: 2}
+  prefabBuildingCannon: {fileID: 1734782220453394, guid: 98606eca2966de142b18bdbe6baeeea8,
+    type: 2}
+  prefabBuildingCamp: {fileID: 1968715123890502, guid: 4ec9f51b93a092e4189c45d2ed536192,
+    type: 2}
+  prefabBuildingProducer: {fileID: 1209742310647810, guid: d20785cb78b7cf043a9c91aa2b94c448,
+    type: 2}
+  prefabBuildingWorkshop: {fileID: 1860381086311138, guid: c35ebea3faa2da44da21bbccd6698592,
+    type: 2}
+  prefabBuildingTrainingHouse: {fileID: 1170515497889964, guid: 8775b3b8f6a18394f8da646d6dd206a5,
+    type: 2}
+  prefabBuildingStoreroom: {fileID: 1623725686894320, guid: 94744ca6d43d155488a8cebbcad7f4ee,
+    type: 2}
   prefabHealthBarEffect: {fileID: 1788691703827506, guid: e04b0af68b8ae3245bfab61f80a65a0b,
     type: 2}
   prefabPlaceObjectButton: {fileID: 1377891613458954, guid: 32fa289285c309145a6722c25aaf1828,
     type: 2}
   prefabEnemy: {fileID: 1661795401862636, guid: 6eb6ba6c7e309134c853a704892aa9ba,
     type: 2}
+  maleNames: {fileID: 4900000, guid: ade35f21821e3424089a4669451600d8, type: 3}
+  femaleNames: {fileID: 4900000, guid: 64657a66432702c4e84fbd3768dd91e2, type: 3}
+  lastNames: {fileID: 4900000, guid: 8ebdb993878d36643a4e2a481eb416f2, type: 3}
+  constants: {fileID: 4900000, guid: d8b75a64b3c938840921afb1a27fda6d, type: 3}

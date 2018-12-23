@@ -1,12 +1,10 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class Main : MonoBehaviour {
 
     /// <summary> If true, debug mode is on. </summary>
     public static bool DEBUG = true;
-    public static bool DEBUG_HEALTH = true;
-    public static string SAVE_PATH = "saves/save1";
+    public static bool DEBUG_HEALTH = false;
 
     private static Main singleton;
 
@@ -20,7 +18,10 @@ public class Main : MonoBehaviour {
         if (Main.singleton == null) {
             Main.singleton = this;
 
+            // Preform bootstrap.
+            Constants.bootstrap();
             Registry.registryBootstrap();
+            Names.bootstrap();
         }
         else if (singleton != this) {
             // As every scene contains a Main object, destroy the new ones that are loaded.

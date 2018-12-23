@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class ProgressBar : MonoBehaviour {
@@ -10,13 +11,17 @@ public class ProgressBar : MonoBehaviour {
     private Image img;
     private Canvas canvas;
 
-    public static ProgressBar instantiateHealthbar(GameObject holderObj, float height, int maxValue) {
+    private Func<int, int, Color> colorFunction;
+
+    public static ProgressBar instantiateBar(GameObject holderObj, float height, int maxValue, Func<int, int, Color> colorFunction) {
         Vector3 pos = holderObj.transform.position + new Vector3(0, height, 0);
         GameObject obj = GameObject.Instantiate(References.list.prefabHealthBarEffect, pos, Quaternion.identity);
         ProgressBar progressBar = obj.GetComponent<ProgressBar>();
         progressBar.transform.SetParent(holderObj.transform);
         progressBar.gameObject.name = "ProgressBarCanvas";
         progressBar.maxProgress = maxValue;
+        progressBar.colorFunction = colorFunction;
+        progressBar.updateProgressBar(0);
         return progressBar;
     }
 
@@ -33,19 +38,7 @@ public class ProgressBar : MonoBehaviour {
         float f = this.originalX / this.maxProgress;
         this.rect.sizeDelta = new Vector2(amount * f, this.rect.sizeDelta.y);
 
-        //TODO: have different color schemes.
-        // Update color.
-        Color c;
-        if (amount < (this.maxProgress / 4)) {
-            c = Color.red;
-        }
-        else if (amount < (this.maxProgress / 2)) {
-            c = new Color(1f, 0.4f, 0);
-        }
-        else {
-            c = Color.green;
-        }
-        this.img.color = c;
+        this.img.color = this.colorFunction.Invoke(amount, this.maxProgress);
     }
 
     public void setVisible(bool visible) {

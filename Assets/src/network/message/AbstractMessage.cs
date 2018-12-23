@@ -1,10 +1,10 @@
 ﻿using UnityEngine.Networking;
 
-public abstract class AbstractMessage : MessageBase {
+public abstract class AbstractMessage<T> : MessageBase where T : NetHandlerBase {
 
     public AbstractMessage() { }
 
-    public abstract void processMessage(MessageProcesser ms);
+    public abstract void processMessage(T handler);
 
     /// <summary>
     /// Returns a unique ID for this message.

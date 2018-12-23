@@ -15,9 +15,7 @@ public class MessageSender {
 
     private void sendMessage(NetworkClient client, MessageBase message, short messageID) {
         client.Send(messageID, message);
-    }
-
-    
+    }    
 
     private static void OnServerReadyToBeginMessage(NetworkMessage netMsg) {
         throw new NotImplementedException();

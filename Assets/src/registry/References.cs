@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System;
 using UnityEngine.Networking;
 using System.Collections.Generic;
 
@@ -22,10 +20,18 @@ public class References : MonoBehaviour {
 
     // Objects that are registered:
     public GameObject prefabUnitSoldier;
-    public GameObject prefabProjectileBullet;
-    public GameObject prefabBuildingFlag;
-    public GameObject prefabBuildingWall;
+    public GameObject prefabUnitArcher;
+    public GameObject prefabUnitBuilder;
+    public GameObject prefabProjectileArrow;
+
+    public GameObject prefabBuildingCamp;
     public GameObject prefabBuildingCannon;
+    public GameObject prefabBuildingFlag;
+    public GameObject prefabBuildingProducer;
+    public GameObject prefabBuildingStoreroom;
+    public GameObject prefabBuildingTrainingHouse;
+    public GameObject prefabBuildingWorkshop;
+    public GameObject prefabBuildingWall;
 
     // Other:
     public GameObject prefabHealthBarEffect;
@@ -36,16 +42,27 @@ public class References : MonoBehaviour {
     // Unused:
     public GameObject prefabEnemy;
 
+    public TextAsset maleNames;
+    public TextAsset femaleNames;
+    public TextAsset lastNames;
+    public TextAsset constants;
+
     private void Awake() {
         References.list = this;
 
         this.add(this.prefabUnitSoldier);
+        this.add(this.prefabUnitArcher);
 
-        this.add(this.prefabProjectileBullet);
+        this.add(this.prefabProjectileArrow);
 
-        this.add(this.prefabBuildingFlag);
-        this.add(this.prefabBuildingWall);
+        this.add(this.prefabBuildingCamp);
         this.add(this.prefabBuildingCannon);
+        this.add(this.prefabBuildingFlag);
+        this.add(this.prefabBuildingProducer);
+        this.add(this.prefabBuildingStoreroom);
+        this.add(this.prefabBuildingTrainingHouse);
+        this.add(this.prefabBuildingWorkshop);
+        this.add(this.prefabBuildingWall);
 
         this.add(this.prefabHealthBarEffect);
 
@@ -57,8 +74,13 @@ public class References : MonoBehaviour {
     }
 
     private void add(GameObject prefab) {
-        if(prefab != null) {
-            this.allPrefabs.Add(prefab);
+        if(prefab == null) {
+            Debug.LogWarning("Tried to register null prefab, this is not good!");
+            return;
         }
+        if(this.allPrefabs.Contains(prefab)) {
+            Debug.LogWarning("Duplicate prefabs with the name \"" + prefab.name + "\" registered, this is not good!");
+        }
+        this.allPrefabs.Add(prefab);
     }
 }
