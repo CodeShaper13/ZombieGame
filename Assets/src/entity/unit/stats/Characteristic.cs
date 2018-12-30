@@ -2,7 +2,9 @@
 
     private static readonly float FACTOR = 0.10f;
 
-    public static readonly Characteristic[] ALL = new Characteristic[16];
+    public static readonly Characteristic[] ALL = new Characteristic[17];
+
+    public static readonly Characteristic none = new Characteristic(16, "", 0, 0, 0, 0);
 
     /// <summary> HP +1   Speed  0   Attack  0   Defense  0 </summary>
     public static readonly Characteristic a = new Characteristic(0, "", 1, 0, 0, 0);

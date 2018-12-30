@@ -1,4 +1,5 @@
-﻿using System.Text;
+using fNbt;
+using System.Text;
 using UnityEngine;
 
 public class UnitStats {
@@ -53,6 +54,27 @@ public class UnitStats {
         }
     }
 
+    public UnitStats(NbtCompound tag, EntityBaseStats baseStats) : this() {
+        this.baseStats = baseStats;
+
+        NbtCompound tag1 = tag.getCompound("stats");
+
+        this.firstName = tag1.getString("firstName");
+        this.lastName = tag1.getString("lastName");
+        this.gender = tag1.getByte("gender") == 1 ? EnumGender.MALE : EnumGender.FEMALE;
+        this.characteristic = Characteristic.ALL[tag1.getInt("characteristicID")];
+
+        this.distanceWalked.readFromNbt(tag1);
+        this.timeAlive.readFromNbt(tag1);
+        this.unitsKilled.readFromNbt(tag1);
+        this.buildingsDestroyed.readFromNbt(tag1);
+        this.damageDelt.readFromNbt(tag1);
+        this.damageTaken.readFromNbt(tag1);
+        this.resourcesCollected.readFromNbt(tag1);
+        this.buildingsBuilt.readFromNbt(tag1);
+        this.repairsDone.readFromNbt(tag1);
+    }
+
     /// <summary>
     /// Returns the full name, first and last, of the unit.
     /// </summary>
@@ -69,7 +91,7 @@ public class UnitStats {
     }
 
     public float getSpeed() {
-        return this.characteristic.getSpeed(this.baseStats.baseSpeed);
+        return this.characteristic.getSpeed(this.baseStats.baseSpeedMultiplyer);
     }
 
     public int getAttack() {
@@ -78,6 +100,27 @@ public class UnitStats {
 
     public int getDefense() {
         return this.characteristic.getDefense(this.baseStats.baseDefense);
+    }
+
+    public void writeToNBT(NbtCompound tag) {
+        NbtCompound tag1 = new NbtCompound("stats");
+
+        tag1.setTag("firstName", this.firstName);
+        tag1.setTag("lastName", this.lastName);
+        tag1.setTag("gender", (byte)(this.gender == EnumGender.MALE ? 1 : 2));
+        tag1.setTag("characteristicID", this.characteristic.getId());
+
+        this.distanceWalked.writeToNbt(tag1);
+        this.timeAlive.writeToNbt(tag1);
+        this.unitsKilled.writeToNbt(tag1);
+        this.buildingsDestroyed.writeToNbt(tag1);
+        this.damageDelt.writeToNbt(tag1);
+        this.damageTaken.writeToNbt(tag1);
+        this.resourcesCollected.writeToNbt(tag1);
+        this.buildingsBuilt.writeToNbt(tag1);
+        this.repairsDone.writeToNbt(tag1);
+
+        tag.Add(tag1);
     }
 
     public string getFormattedStatString(bool isBuilder) {
@@ -107,4 +150,4 @@ public class UnitStats {
         }
         return sb.ToString();
     }
-}
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         

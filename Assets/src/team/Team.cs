@@ -10,6 +10,7 @@ public class Team {
     public static Team GREEN = new Team(3, "green", Color.green);
     public static Team PURPLE = new Team(4, "purple", new Color(0.40f, 0.07f, 0.54f));
     public static Team[] ALL_TEAMS = new Team[] { NONE, ORANGE, BLUE, GREEN, PURPLE };
+
     public readonly Predicate<MapObject> predicateThisTeam;
     public readonly Predicate<MapObject> predicateOtherTeam;
 
@@ -18,10 +19,8 @@ public class Team {
     private readonly Color color;
     private readonly EnumTeam enumTeam;
 
-    // Server side only from here.
+    [ServerSideOnly]
     private Transform orginPoint;
-    /// <summary> The number of resources the team has. </summary>
-    private int resources;
 
     private Team(int teamId, string name, Color color) {
         this.teamId = teamId;
@@ -40,7 +39,7 @@ public class Team {
         return this.teamName;
     }
 
-    public Color getTeamColor() {
+    public Color getColor() {
         return this.color;
     }
 
@@ -48,33 +47,8 @@ public class Team {
         return this.enumTeam;
     }
 
-    public int getTeamId() {
+    public int getId() {
         return this.teamId;
-    }
-
-    /// <summary>
-    /// Returns the current number of resources that this team has.
-    /// </summary>
-    public int getResources() {
-        return this.resources;
-    }
-
-    /// <summary>
-    /// Sets the Team's resources, clamping it between 0 and the maximum number the player can have.  Any overflow is discarded.
-    /// </summary>
-    public void setResources(int amount) {
-        this.resources = Mathf.Clamp(amount, 0, this.getMaxResourceCount());
-    }
-
-    /// <summary>
-    /// Reduces the Team's resources by the passed amount.
-    /// </summary>
-    public void reduceResources(int amount) {
-        this.setResources(this.resources - amount);
-    }
-
-    public void increaseResources(int amount) {
-        this.setResources(this.resources + amount);
     }
 
     public void setOrgin(Transform t) {
@@ -92,9 +66,9 @@ public class Team {
     /// <summary>
     /// Returns the maximum amount of resources that this Team can have.
     /// </summary>
-    public int getMaxResourceCount() {
+    public int getMaxResourceCount(Map map) {
         int maxResources = Constants.STARTING_RESOURCE_CAP;
-        foreach(SidedEntity o in Map.instance.findMapObjects(this.predicateThisTeam)) {
+        foreach(SidedEntity o in map.findMapObjects(this.predicateThisTeam)) {
             if(o is BuildingStoreroom) {
                 maxResources += Constants.BUILDING_STOREROOM_RESOURCE_BOOST;
             }
@@ -105,9 +79,9 @@ public class Team {
     /// <summary>
     /// Returns the total number of troops this team can have.
     /// </summary>
-    public int getMaxTroopCount() {
+    public int getMaxTroopCount(Map map) {
         int i = Constants.STARTING_TROOP_CAP;
-        foreach(SidedEntity o in Map.instance.findMapObjects(this.predicateThisTeam)) {
+        foreach(SidedEntity o in map.findMapObjects(this.predicateThisTeam)) {
             if(o is BuildingCamp) {
                 BuildingCamp camp = (BuildingCamp)o;
                 if(!camp.isConstructing()) {

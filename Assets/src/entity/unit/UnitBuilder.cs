@@ -8,8 +8,8 @@ public class UnitBuilder : UnitBase, IResourceHolder {
     private int heldResources;
     private ProgressBar resourceBar;
 
-    public override void OnStartClient() {
-        base.OnStartClient();
+    public override void onUiInit() {
+        base.onUiInit();
 
         this.resourceBar = ProgressBar.instantiateBar(
             this.gameObject,
@@ -62,7 +62,7 @@ public class UnitBuilder : UnitBase, IResourceHolder {
     }
 
     public override int getButtonMask() {
-        return base.getButtonMask() | ActionButton.builderBuild.getMask() | ActionButton.harvestResources.getMask() | ActionButton.repair.getMask();
+        return base.getButtonMask() | ActionButton.builderBuild.getMask() | ActionButton.builderHarvestResources.getMask() | ActionButton.builderRepair.getMask();
     }
 
     public override float getHealthBarHeight() {

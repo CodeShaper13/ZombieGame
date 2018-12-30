@@ -13,7 +13,7 @@ public class MessageSpawnEntity : AbstractMessage<NetHandlerServer> {
         this.entityId = registeredObject.getId();
         this.position = pos;
         this.rotation = Quaternion.Euler(rotation.x, rotation.y, rotation.z);
-        this.teamId = team.getTeamId();
+        this.teamId = team.getId();
     }
 
     public Team getTeam() {

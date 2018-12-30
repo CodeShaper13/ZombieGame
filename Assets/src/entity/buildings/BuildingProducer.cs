@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using fNbt;
+using UnityEngine;
 using UnityEngine.Networking;
 
 public class BuildingProducer : BuildingBase, IResourceHolder {
@@ -10,8 +11,8 @@ public class BuildingProducer : BuildingBase, IResourceHolder {
 
     private ProgressBar resourceBar;
 
-    public override void OnStartClient() {
-        base.OnStartClient();
+    public override void onUiInit() {
+        base.onUiInit();
 
         this.resourceBar = ProgressBar.instantiateBar(
             this.gameObject,
@@ -33,6 +34,10 @@ public class BuildingProducer : BuildingBase, IResourceHolder {
         }
     }
 
+    public override void colorObject() {
+        this.transform.GetComponent<MeshRenderer>().material.color = this.getTeam().getColor();
+    }
+
     public override float getHealthBarHeight() {
         return 3f;
     }
@@ -42,11 +47,25 @@ public class BuildingProducer : BuildingBase, IResourceHolder {
     }
 
     public override Vector2 getFootprintSize() {
-        return Vector2.one;
+        return new Vector2(3, 3);
     }
 
     public override int getButtonMask() {
         return base.getButtonMask();
+    }
+
+    public override void readFromNbt(NbtCompound tag) {
+        base.readFromNbt(tag);
+
+        this.time = tag.getFloat("produceTime");
+        this.heldResources = tag.getInt("heldResources");
+    }
+
+    public override void writeToNbt(NbtCompound tag) {
+        base.writeToNbt(tag);
+
+        tag.setTag("produceTime", this.time);
+        tag.setTag("heldResources", this.heldResources);
     }
 
     public int getHeldResources() {

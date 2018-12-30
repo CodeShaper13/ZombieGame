@@ -52,6 +52,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc0df9f0d2821034d9f0ecc4ffb15167, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isSinglePlayerGame: 1
 --- !u!114 &114213853716022208
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -63,7 +64,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a82f7130618e2d84798181974a01ed01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  networkManager: {fileID: 0}
   prefabUnitSoldier: {fileID: 1047585014655104, guid: 2ce1932ee4edba04da5740b456c7c16e,
     type: 2}
   prefabUnitArcher: {fileID: 1885916268208600, guid: f9acebc97660b6745ae9b7ef22580af3,
@@ -72,21 +72,23 @@ MonoBehaviour:
     type: 2}
   prefabProjectileArrow: {fileID: 1322728728439558, guid: 1c4297cfc8fd92a45be48d0f8c561d21,
     type: 2}
-  prefabBuildingFlag: {fileID: 1859688848056336, guid: 03490d3660e161e4e979e32fd05e1eee,
-    type: 2}
-  prefabBuildingWall: {fileID: 1724113632208924, guid: 0d2c2e025b271b545b009d59d29a79a6,
+  prefabBuildingCamp: {fileID: 1968715123890502, guid: 4ec9f51b93a092e4189c45d2ed536192,
     type: 2}
   prefabBuildingCannon: {fileID: 1734782220453394, guid: 98606eca2966de142b18bdbe6baeeea8,
     type: 2}
-  prefabBuildingCamp: {fileID: 1968715123890502, guid: 4ec9f51b93a092e4189c45d2ed536192,
+  prefabBuildingFlag: {fileID: 1859688848056336, guid: 03490d3660e161e4e979e32fd05e1eee,
     type: 2}
   prefabBuildingProducer: {fileID: 1209742310647810, guid: d20785cb78b7cf043a9c91aa2b94c448,
     type: 2}
-  prefabBuildingWorkshop: {fileID: 1860381086311138, guid: c35ebea3faa2da44da21bbccd6698592,
+  prefabBuildingStoreroom: {fileID: 1623725686894320, guid: 94744ca6d43d155488a8cebbcad7f4ee,
     type: 2}
   prefabBuildingTrainingHouse: {fileID: 1170515497889964, guid: 8775b3b8f6a18394f8da646d6dd206a5,
     type: 2}
-  prefabBuildingStoreroom: {fileID: 1623725686894320, guid: 94744ca6d43d155488a8cebbcad7f4ee,
+  prefabBuildingWorkshop: {fileID: 1860381086311138, guid: c35ebea3faa2da44da21bbccd6698592,
+    type: 2}
+  prefabBuildingWall: {fileID: 1724113632208924, guid: 0d2c2e025b271b545b009d59d29a79a6,
+    type: 2}
+  prefabHarvestableTree: {fileID: 1871116203994834, guid: 26136dbecde4e9940ac81f622d7b7b8e,
     type: 2}
   prefabHealthBarEffect: {fileID: 1788691703827506, guid: e04b0af68b8ae3245bfab61f80a65a0b,
     type: 2}
@@ -98,3 +100,4 @@ MonoBehaviour:
   femaleNames: {fileID: 4900000, guid: 64657a66432702c4e84fbd3768dd91e2, type: 3}
   lastNames: {fileID: 4900000, guid: 8ebdb993878d36643a4e2a481eb416f2, type: 3}
   constants: {fileID: 4900000, guid: d8b75a64b3c938840921afb1a27fda6d, type: 3}
+  mapPrefab: {fileID: 1675888071782860, guid: 04fd29c2754cc2e40a27a81b8bcd52ab, type: 2}

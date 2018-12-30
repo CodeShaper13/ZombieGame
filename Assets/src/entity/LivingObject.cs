@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using fNbt;
+using UnityEngine;
 using UnityEngine.Networking;
 
 public abstract class LivingObject : MapObject {
@@ -77,6 +78,18 @@ public abstract class LivingObject : MapObject {
         return this.isDead();
     }
 
+    public override void readFromNbt(NbtCompound tag) {
+        base.readFromNbt(tag);
+
+        this.currentHealth = tag.getInt("health");
+    }
+
+    public override void writeToNbt(NbtCompound tag) {
+        base.writeToNbt(tag);
+
+        tag.setTag("health", this.currentHealth);
+    }
+
     /// <summary>
     /// Returns the maximum about of healt this Unit can have.
     /// </summary>
@@ -89,8 +102,7 @@ public abstract class LivingObject : MapObject {
     /// <summary>
     /// Called on the server side when this object is destroyed.
     /// </summary>
-    public virtual void onDeath() {
-    }
+    public virtual void onDeath() { }
 
     private void hookOnChangeHealth(int newHealth) {
         this.currentHealth = newHealth;

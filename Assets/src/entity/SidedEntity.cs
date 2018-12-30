@@ -1,4 +1,5 @@
 ﻿using cakeslice;
+using fNbt;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -16,7 +17,6 @@ public abstract class SidedEntity : LivingObject {
                 float DistanceToScreen = main.WorldToScreenPoint(gameObject.transform.position).z;
                 Vector3 posMove = main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, DistanceToScreen));
                 Vector3 v = new Vector3(posMove.x, this.transform.position.y, posMove.z);
-                //this.transform.position = v;
 
                 //Send a message to the server
                 Player.localPlayer.sendMessageToServer(new MessageSetObjectPostion(this.gameObject, v));
@@ -24,8 +24,8 @@ public abstract class SidedEntity : LivingObject {
         }
     }
 
-    public override void OnStartClient() {
-        base.OnStartClient();
+    public override void onUiInit() {
+        base.onUiInit();
 
         this.outlineHelper = new OutlineHelper(this.gameObject);
         this.setOutlineVisibility(false, EnumOutlineParam.ALL);
@@ -37,7 +37,19 @@ public abstract class SidedEntity : LivingObject {
     /// Returns the bitmask of what buttons to display.
     /// </summary>
     public virtual int getButtonMask() {
-        return ActionButton.destroy.getMask();
+        return ActionButton.entityDestroy.getMask();
+    }
+
+    public override void readFromNbt(NbtCompound tag) {
+        base.readFromNbt(tag);
+
+        this.teamID = tag.getInt("teamId"); // TODO Should the setter be called here?
+    }
+
+    public override void writeToNbt(NbtCompound tag) {
+        base.writeToNbt(tag);
+
+        tag.setTag("teamId", this.teamID);
     }
 
     public Team getTeam() {
@@ -45,7 +57,7 @@ public abstract class SidedEntity : LivingObject {
     }
 
     public void setTeam(Team team) {
-        this.teamID = team.getTeamId();
+        this.teamID = team.getId();
     }
 
     /// <summary>

@@ -1,12 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
-public class HarvestableObject : LivingObject {
+public abstract class HarvestableObject : LivingObject {
 
     public static readonly Predicate<MapObject> predicateIsHarvestable = (MapObject obj) => { return obj is HarvestableObject; };
 
-    [SerializeField]
-    private EnumHarvestableType type;
     private float sizeRadius;
 
     public override void onStart() {
@@ -33,7 +31,7 @@ public class HarvestableObject : LivingObject {
 
         MeshCollider mc = this.GetComponent<MeshCollider>();
         if(mc != null) {
-            throw new Exception("Meshcollider size is not yet implemented!");
+            throw new Exception("Mesh Collider size is not yet implemented!");
         }
 
         return 0;
@@ -57,39 +55,9 @@ public class HarvestableObject : LivingObject {
     /// <summary>
     /// Returns the number of resources/health this object has.
     /// </summary>
-    private int getTotalResourceYield() {
-        switch(this.type) {
-            case EnumHarvestableType.TREE:
-                return 150;
-            case EnumHarvestableType.DEAD_TREE:
-                return 100;
-            case EnumHarvestableType.TALL_CACTUS:
-                return 200;
-            case EnumHarvestableType.ROCK:
-                return 150;
-            case EnumHarvestableType.SKULL:
-                return 300;
-        }
-        return 0;
-    }
+    protected abstract int getTotalResourceYield();
 
     public override int getMaxHealth() {
         return this.getTotalResourceYield();
-    }
-
-    public override float getHealthBarHeight() {
-        switch(this.type) {
-            case EnumHarvestableType.TREE:
-                return this.transform.localScale.y * 6.8f;
-            case EnumHarvestableType.DEAD_TREE:
-                return 2.65f;
-            case EnumHarvestableType.TALL_CACTUS:
-                return 2.75f;
-            case EnumHarvestableType.ROCK:
-                return 1f;
-            case EnumHarvestableType.SKULL:
-                return 1f;
-        }
-        return 0f;
     }
 }

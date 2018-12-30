@@ -7,34 +7,33 @@ public class ActionButton {
     public static readonly ActionButton[] BUTTON_LIST = new ActionButton[64]; // There doesn't seem to be any limit to the size.
 
     // Functions to use for this.setShouldDisableFunction()
-    private static bool functionIsImmutable(SidedEntity entity) {
-        return entity.isImmutable();
-    }
+    private static bool functionIsImmutable(SidedEntity entity) { return entity.isImmutable(); }
+    private static bool functionIsConstructing(SidedEntity entity) { return ((BuildingBase)entity).isConstructing(); }
 
 
-    public static readonly ActionButton destroy = new ActionButtonParent("Destroy", 0,
+    public static readonly ActionButton entityDestroy = new ActionButtonParent("Destroy", 0,
         new ActionButtonChild("Confirm")
-        .setMainActionFunction((unit) => { unit.damage(null, int.MaxValue); }))
+        .setMainActionFunction((entity) => { entity.damage(null, int.MaxValue); }))
         .setShouldDisableFunction(functionIsImmutable);
 
     // Builder specific.
     public static readonly ActionButton builderBuild = new ActionButtonParent("Build", 1,
-        //new ActionButtonBuild("Camp", Registry.buildingCamp),
-        //new ActionButtonBuild("Producer", Registry.buildingProducer),
-        //new ActionButtonBuild("Workshop", Registry.buildingWorkshop),
-        //new ActionButtonBuild("Training House", Registry.buildingTrainingHouse),
-        //new ActionButtonBuild("Storeroom", Registry.buildingStoreroom),
+        new ActionButtonBuild("Camp", Registry.buildingCamp),
+        new ActionButtonBuild("Producer", Registry.buildingProducer),
+        new ActionButtonBuild("Workshop", Registry.buildingWorkshop),
+        new ActionButtonBuild("Training House", Registry.buildingTrainingHouse),
+        new ActionButtonBuild("Storeroom", Registry.buildingStoreroom),
         new ActionButtonBuild("Tower", Registry.buildingCannon),
         new ActionButtonBuild("Flag", Registry.buildingFlag)
     );
 
-    public static readonly ActionButton harvestResources = new ActionButton("Harvest", 2)
+    public static readonly ActionButton builderHarvestResources = new ActionButton("Harvest", 2)
         .setMainActionFunction((unit) => {
             UnitBuilder ub = ((UnitBuilder)unit);
             ub.setTask(new TaskHarvestNearby(ub));
         });
 
-    public static readonly ActionButton repair = new ActionButtonRequireClick("Repair", 3)
+    public static readonly ActionButton builderRepair = new ActionButtonRequireClick("Repair", 3)
         .setMainActionFunction((unit, target) => {
             UnitBuilder ub = ((UnitBuilder)unit);
             ub.setTask(new TaskRepair(ub, (BuildingBase)target)); //TODO
@@ -54,46 +53,43 @@ public class ActionButton {
         });
 
     // Fighting troop attacks.
-    public static readonly ActionButton idle = new ActionButton("Idle", 7)
+    public static readonly ActionButton unitIdle = new ActionButton("Idle", 7)
         .setMainActionFunction((unit) => {
             ((UnitBase)unit).setTask(null);
         });
 
-    public static readonly ActionButton attackNearby = new ActionButton("Attack", 8)
+    public static readonly ActionButton unitAttackNearby = new ActionButton("Attack", 8)
         .setMainActionFunction((unit) => {
             UnitFighting uf = ((UnitFighting)unit);
             uf.setTask(new TaskAttackNearby(uf));
         });
 
-    public static readonly ActionButton defend = new ActionButton("Defend Point", 9)
+    public static readonly ActionButton unitDefend = new ActionButton("Defend Point", 9)
         .setMainActionFunction((unit) => {
             UnitFighting uf = ((UnitFighting)unit);
             uf.setTask(new TaskDefendPoint(uf));
         });
 
     // Buildings (16-23)
-    public static readonly ActionButton upgrade = new ActionButton("Upgrade", 16); //TODO implement.
-
     public static readonly ActionButton train = new ActionButtonParent("Train", 17,
         new ActionButtonTrain(Registry.unitSoldier),
         new ActionButtonTrain(Registry.unitArcher),
-        new ActionButtonTrain(Registry.unitBuilder));
+        new ActionButtonTrain(Registry.unitBuilder))
+        .setShouldDisableFunction(functionIsConstructing);
 
     public static readonly ActionButton buildingRotate = new ActionButton("Rotate", 20)
         .setMainActionFunction((building) => {
             ((BuildingBase)building).rotateBuilding();
-        }).setShouldDisableFunction(functionIsImmutable);
-
-    //public static readonly ActionButton buildSpecial = new ActionButtonParent("Construct", 21,
-    //    new ActionButtonTrain(Registry.specialWarWagon),
-    //    new ActionButtonTrain(Registry.specialCannon));
-
-
+        }).setShouldDisableFunction((entity) => {
+            return functionIsImmutable(entity) || functionIsConstructing(entity);
+        });
 
     /// <summary> The mask of the action button, this is -1 on child buttons. </summary>
     private readonly int mask;
     private readonly int id;
     private readonly string displayName;
+
+    private bool executeOnClient = false;
 
     /// <summary>
     /// The function that is run when the button is clicked.
@@ -135,6 +131,11 @@ public class ActionButton {
 
     public ActionButton setShouldDisableFunction(Func<SidedEntity, bool> function) {
         this.shouldDisableFunction = function;
+        return this;
+    }
+
+    public ActionButton setExecuteOnClientSide() {
+        this.executeOnClient = true;
         return this;
     }
 
@@ -182,6 +183,13 @@ public class ActionButton {
     }
 
     /// <summary>
+    /// If true, the action function should be called on the client side, not the server.
+    /// </summary>
+    public bool executeOnClientSide() {
+        return this.executeOnClient;
+    }
+
+    /// <summary>
     /// Returns the mask of this button, or if this is a child button, it's parent's mask.
     /// </summary>
     public virtual int getMask() {
@@ -204,7 +212,7 @@ public class ActionButton {
 
     /// <summary>
     /// Weeds out the SidedEntities that can't have this buttons function called on them by looking at their button mask.
-    /// THe valid SidedEntities are returned.
+    /// The valid SidedEntities are returned.
     /// </summary>
     protected List<SidedEntity> getCandidates<T>(List<T> list) where T : SidedEntity {
         int buttonMask = this.getMask();

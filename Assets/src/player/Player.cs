@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Networking;
 using UnityEngine.UI;
@@ -8,24 +9,24 @@ public class Player : NetworkBehaviour {
     /// <summary> Reference to this sides local player. </summary>
     public static Player localPlayer;
 
-    [HideInInspector]
-    public Main main;
+    private Map map;
 
-    public Canvas mainCanvas;
-
+    // UI references:
     [SerializeField]
     private SetupPhaseUI setupPhaseUI;
     [SerializeField]
     private Text timerText;
     [SerializeField]
     private Text announcementText;
-    private float announcementTimer;
-
     [SerializeField]
-    public Text resourceText;
+    private Text resourceText;
     [SerializeField]
-    public Text troopCountText;
+    private Text troopCountText;
+    [SerializeField]
+    /// <summary> A reference to the main canvas holding all of the UI elements. </summary>
+    private Canvas mainCanvas;
 
+    // Selected object(s).
     public SelectedParty selectedParty;
     public SelectedBuilding selectedBuilding;
     public SelectedDisplayerBase getSelected() {
@@ -36,7 +37,9 @@ public class Player : NetworkBehaviour {
         }
     }
 
+    // References to scripts on UI game objects.
     public ActionButtonManager actionButtons;
+    public BuildOutline buildOutline;
     public SelectionBox selectionBox;
 
     private EnumGameState gameState;
@@ -46,13 +49,29 @@ public class Player : NetworkBehaviour {
 
     private NetHandlerClient handler;
 
+    [SyncVar]
+    public int currentTeamResources;
+
+    /// <summary> Time in seconds until the announcement text should vanish. </summary>
+    private float announcementTimer;
+
+    private void Start() {
+        this.map = GameObject.FindObjectOfType<Map>();
+    }
+
     public override void OnStartClient() {
         this.handler = new NetHandlerClient(this);
     }
 
     public override void OnStartLocalPlayer() {
+        this.initGUIs();
+    }
+
+    /// <summary>
+    /// Reveals and initializes the Player's Camera and UI elements.
+    /// </summary>
+    public void initGUIs() {
         Player.localPlayer = this;
-        this.main = Main.instance();
 
         // Enable the Camera and HUD.
         this.cameraObj.SetActive(true);
@@ -61,20 +80,23 @@ public class Player : NetworkBehaviour {
         this.actionButtons.init();
         this.selectedParty.init(this);
         this.selectedBuilding.init(this);
+
+        this.buildOutline.gameObject.SetActive(true);
+        this.buildOutline.init(this, this.map);
     }
 
     private void Update() {
         // Only handle input if this is a local player.
-        if(this.isLocalPlayer) {
+        if(this.isLocalPlayer || Main.instance().isSinglePlayerGame) {
             // Debug keys.
             if(Input.GetKeyDown(KeyCode.F3)) {
                 Main.DEBUG = !Main.DEBUG;
                 Debug.Log("Toggling Debug Mode.  It is now set to " + Main.DEBUG);
             }
 
-            if(this.main.isPaused()) {
+            if(Main.instance().isPaused()) {
                 if(Input.GetKeyDown(KeyCode.Escape)) {
-                    this.main.resumeGame();
+                    Main.instance().resumeGame();
                 }
             }
             else {
@@ -87,7 +109,7 @@ public class Player : NetworkBehaviour {
                 }
 
                 // Update timer text.
-                this.timerText.text = Map.instance.timer != -1 ? "Setup! " + Mathf.Ceil(Map.instance.timer).ToString() : string.Empty;
+                this.timerText.text = this.map.timer != -1 ? "Setup! " + Mathf.Ceil(this.map.timer).ToString() : string.Empty;
 
                 this.selectedBuilding.onUpdate();
                 this.selectedParty.onUpdate();
@@ -100,25 +122,24 @@ public class Player : NetworkBehaviour {
                     if(this.actionButtons.delayedButtonRef != null) {
                         this.actionButtons.cancelDelayedAction();
                     }
-                    //else if(this.buildOutline.isEnabled()) {
-                    //    this.buildOutline.disableOutline();
-                    //}
+                    else if(this.buildOutline.isEnabled()) {
+                        this.buildOutline.disableOutline();
+                    }
                     else {
                         this.actionButtons.closePopupButtons();
-                        this.main.pauseGame();
+                        Main.instance().pauseGame();
                     }
                 }
                 else {
                     this.handleCameraMovement();
                     if(!EventSystem.current.IsPointerOverGameObject()) {
                         // Mouse over the playing field, not UI object.
-
-                        //if(this.buildOutline.isEnabled()) {
-                        //    this.buildOutline.handleClick();
-                        //}
-                        //else {
+                        if(this.buildOutline.isEnabled()) {
+                            this.buildOutline.handleClick();
+                        }
+                        else {
                             this.handlePlayerInput();
-                        //}
+                        }
                     }
                 }
             }
@@ -244,7 +265,7 @@ public class Player : NetworkBehaviour {
             }
         }
         else if(entity is BuildingBase) {
-            if(entity == this.selectedBuilding) { //TODO == no longer works becuase we don't have Guids???
+            if(entity == this.selectedBuilding) {
                 this.selectedBuilding.clearSelected();
             }
             else {
@@ -257,7 +278,7 @@ public class Player : NetworkBehaviour {
 
     public void setGameState(EnumGameState newState) {
         this.gameState = newState;
-        this.setupPhaseUI.gameObject.SetActive(this.gameState == EnumGameState.PREPARE);
+//        this.setupPhaseUI.gameObject.SetActive(this.gameState == EnumGameState.PREPARE);
     }
 
     public EnumGameState getGameState() {
@@ -275,10 +296,11 @@ public class Player : NetworkBehaviour {
     [ClientRpc]
     public void RpcSetTeam(int newTeamId) {
         this.team = Team.getTeamFromId(newTeamId);
-        Color color = this.team.getTeamColor();
-        this.GetComponent<MeshRenderer>().material.color = color;
     }
 
+    /// <summary>
+    /// Returns the team that this player controls.
+    /// </summary>
     public Team getTeam() {
         return this.team;
     }
@@ -317,18 +339,18 @@ public class Player : NetworkBehaviour {
     /// </summary>
     public void updateHudCounts() {
         int currentTroopCount = 0;
-        int maxResources = this.team.getMaxResourceCount();
-        foreach(SidedEntity o in Map.instance.findMapObjects(this.team.predicateThisTeam)) {
+        int maxResources = this.team.getMaxResourceCount(this.map);
+        foreach(SidedEntity o in this.map.findMapObjects(this.team.predicateThisTeam)) {
             if(o is UnitBase) {
                 currentTroopCount++;
             }
         }
 
-        int max = this.team.getMaxTroopCount();
+        int max = this.team.getMaxTroopCount(this.map);
         this.troopCountText.text = "Troops: " + currentTroopCount + "/" + max;
         //this.troopCountText.fontStyle = (currentTroopCount == max ? FontStyle.Bold : FontStyle.Normal);
 
-        int res = this.team.getResources();
+        int res = this.currentTeamResources;
         this.resourceText.text = "Resources: " + res + "/" + maxResources;
         //this.resourceText.fontStyle = (res == maxResources ? FontStyle.Bold : FontStyle.Normal);
     }
@@ -340,15 +362,26 @@ public class Player : NetworkBehaviour {
         base.connectionToServer.Send(message.getID(), message);
     }
 
-    public void callActionButton(ActionButton button, params SidedEntity[] targets) {
-        MessageRunAction msg;
-        if(button is ActionButtonChild) {
-            ActionButtonChild abc = (ActionButtonChild)button;
-            msg = new MessageRunAction(abc.parentActionButton.getID(), abc.index, targets);
+    public void callActionButton(ActionButton button, List<SidedEntity> targets) {
+        if(button.executeOnClientSide()) {
+            button.callFunction(targets);
         } else {
-            msg = new MessageRunAction(button.getID(), targets);
-        }
+            MessageRunAction msg;
+            if(button is ActionButtonChild) {
+                ActionButtonChild abc = (ActionButtonChild)button;
+                msg = new MessageRunAction(abc.parentActionButton.getID(), abc.index, targets);
+            } else {
+                msg = new MessageRunAction(button.getID(), targets);
+            }
 
-        this.sendMessageToServer(msg);
+            this.sendMessageToServer(msg);
+        }
+    }
+
+    /// <summary>
+    /// Enables the build outline.
+    /// </summary>
+    public void enableBuildOutline(RegisteredObject registeredBuilding, UnitBuilder builder) {
+        this.buildOutline.enableOutline(registeredBuilding, builder);
     }
 }

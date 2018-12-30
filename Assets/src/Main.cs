@@ -10,6 +10,11 @@ public class Main : MonoBehaviour {
 
     private bool paused;
 
+    /// <summary> If true, the current game is a single player game. 
+    /// This is not accurate outside of a game (eg, on the title scree).
+    /// </summary>
+    public bool isSinglePlayerGame;
+
     public static Main instance() {
         return Main.singleton;
     }
@@ -22,6 +27,11 @@ public class Main : MonoBehaviour {
             Constants.bootstrap();
             Registry.registryBootstrap();
             Names.bootstrap();
+
+            #if UNITY_EDITOR
+                // Debug
+                this.isSinglePlayerGame = GameObject.FindObjectOfType<CustomNetworkManager>() == null;
+            #endif
         }
         else if (singleton != this) {
             // As every scene contains a Main object, destroy the new ones that are loaded.

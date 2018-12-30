@@ -6,6 +6,13 @@ public class CustomNetworkManager : NetworkManager {
     private MapData mapData;
 
     public AvailableTeams availibleTeams;
+    private Map map;
+
+    private void Awake() {
+        References.list.func(this);
+
+        this.map = GameObject.Instantiate(References.list.mapPrefab).GetComponent<Map>();
+    }
 
     public override void OnStartServer() {
         base.OnStartServer();
@@ -20,19 +27,23 @@ public class CustomNetworkManager : NetworkManager {
 
     public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId) {
         Team team = this.availibleTeams.getAvailableTeam();
-        int teamId = team.getTeamId();
+        int teamId = team.getId();
         
-        GameObject playerObject = GameObject.Instantiate(this.playerPrefab, team.getOrginPos(), Quaternion.identity);
-        Player player = playerObject.GetComponent<Player>();
-        NetworkServer.AddPlayerForConnection(conn, playerObject, playerControllerId);
+        GameObject playerGameObj = GameObject.Instantiate(this.playerPrefab, team.getOrginPos(), Quaternion.identity);
+        Player player = playerGameObj.GetComponent<Player>();
+        NetworkServer.AddPlayerForConnection(conn, playerGameObj, playerControllerId);
 
         player.team = team;
         player.RpcSetTeam(teamId);
 
-        MessageChangeGameState msg = new MessageChangeGameState(Map.instance.gameState);
-        conn.Send(msg.getID(), msg);
+        ConnectedPlayer cp = new ConnectedPlayer(conn, player);
 
-        Map.instance.allPlayers.Add(player);
+        // Setup a first time player
+        player.currentTeamResources = Constants.STARTING_RESOURCES;
+
+        cp.sendMessage(new MessageChangeGameState(this.map.gameState));
+
+        this.map.allPlayers.Add(cp);
     }
 
     public override void OnServerRemovePlayer(NetworkConnection conn, PlayerController playerController) {
@@ -41,6 +52,15 @@ public class CustomNetworkManager : NetworkManager {
         Player player = playerController.gameObject.GetComponent<Player>();
         this.availibleTeams.freeTeam(player.team);
 
-        Map.instance.allPlayers.Remove(player);
+        for(int i = this.map.allPlayers.Count - 1; i >= 0; i--) {
+            // Do processing here, then...
+            ConnectedPlayer cp = this.map.allPlayers[i];
+            if(cp.getConnection().connectionId == conn.connectionId) {
+                this.map.allPlayers.RemoveAt(i);
+                return;
+            }
+        }
+
+        Debug.Log("PROBLEM!");
     }
 }

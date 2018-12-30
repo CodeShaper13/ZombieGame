@@ -1,5 +1,4 @@
-﻿using System.IO;
-/// <summary>
+﻿/// <summary>
 /// Constants that can be easily changed to help with game balancing.
 /// </summary>
 public static class Constants {
@@ -11,13 +10,46 @@ public static class Constants {
     #endregion
 
     #region Units:
-    public static readonly EntityBaseStats ED_BUILDER = new EntityBaseStats("Builder", 35, 3.5f, 5, 10, 25, 45f);
-    public static readonly EntityBaseStats ED_SOLDIER = new EntityBaseStats("Soldier", 75, 3.5f, 5, 10, 25, 1f);
-    public static readonly EntityBaseStats ED_ARCHER = new EntityBaseStats("Archer", 50, 3.5f, 5, 10, 25, 15f);
-    public static readonly EntityBaseStats ED_HEAVY = new EntityBaseStats("Heavy", 100, 3.5f, 5, 10, 25, 25f);
+    public static int UNIT_HP_MINUS = 40;
+    public static int UNIT_HP_MEDIAN = 50;
+    public static int UNIT_HP_PLUS = 60;
 
-    public static readonly EntityBaseStats ED_WAR_WAGON = new EntityBaseStats("War Wagon", 500, 3.5f, 3, 10, 100, 60f);
-    public static readonly EntityBaseStats ED_CANNON = new EntityBaseStats("Cannon", 150, 3.5f, 200, 10, 100, 45f);
+    public static int UNIT_ATK_MINUS = 8;
+    public static int UNIT_ATK_MEDIAN = 10;
+    public static int UNIT_ATK_PLUS = 12;
+
+    public static int UNIT_DEF_MINUS = -4;
+    public static int UNIT_DEF_MEDIAN = 0;
+    public static int UNIT_DEF_PLUS = 4;
+
+    public static float UNIT_SPEED_MINUS = .75f;
+    public static float UNIT_SPEED_MEDIAN = 1f;
+    public static float UNIT_SPEED_PLUS = 1.25f;
+
+    public static readonly EntityBaseStats ED_SOLDIER = new EntityBaseStats("Soldier",
+        UNIT_HP_MINUS,
+        UNIT_ATK_PLUS,
+        UNIT_DEF_MEDIAN,
+        UNIT_SPEED_PLUS,
+        25, 15f);
+    public static readonly EntityBaseStats ED_ARCHER = new EntityBaseStats("Archer",
+        UNIT_HP_PLUS,
+        UNIT_ATK_PLUS,
+        UNIT_DEF_MINUS,
+        UNIT_SPEED_MEDIAN,
+        25, 15f);
+    public static readonly EntityBaseStats ED_HEAVY = new EntityBaseStats("Heavy",
+        UNIT_HP_PLUS,
+        UNIT_ATK_MEDIAN,
+        UNIT_DEF_PLUS,
+        UNIT_SPEED_MINUS,
+        25, 15f);
+    public static readonly EntityBaseStats ED_BUILDER = new EntityBaseStats("Builder",
+        UNIT_HP_MEDIAN,
+        UNIT_ATK_MINUS,
+        UNIT_DEF_PLUS,
+        UNIT_SPEED_PLUS,
+        50, 30f);
 
     // Only a float to prevent casting in math operations.
     public static float BASE_DEFENSE_VALUE = 10;

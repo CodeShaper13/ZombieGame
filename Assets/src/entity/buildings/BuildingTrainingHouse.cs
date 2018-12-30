@@ -2,12 +2,16 @@
 
 public class BuildingTrainingHouse : BuildingQueuedProducerBase {
 
+    public override void colorObject() {
+        this.GetComponent<MeshRenderer>().material.color = this.getTeam().getColor();
+    }
+
     public override float getHealthBarHeight() {
         return 3f;
     }
 
     public override Vector2 getFootprintSize() {
-        return Vector2.one;
+        return new Vector2(3, 3);
     }
 
     public override BuildingData getData() {

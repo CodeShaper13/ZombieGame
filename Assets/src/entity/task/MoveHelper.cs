@@ -14,7 +14,7 @@ public class MoveHelper : IDrawDebug {
     public MoveHelper(UnitBase unit) {
         this.unit = unit;
         agent = this.unit.GetComponent<NavMeshAgent>();
-        //agent.speed = this.unit.unitStats.getSpeed();
+        agent.speed *= this.unit.getData().baseSpeedMultiplyer;
         agent.angularSpeed = TURN_SPEED;
     }
 

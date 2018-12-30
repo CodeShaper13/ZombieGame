@@ -30,7 +30,7 @@
     /// Call to free the passed Team up from the list of Teams.
     /// </summary>
     public void freeTeam(Team team) {
-        int i = team.getTeamId();
+        int i = team.getId();
         this.availibleTeams[i - 1] = true;
     }
 }

@@ -17,9 +17,8 @@ public class RegisteredObject {
             this.prefab = prefab;
             MapObject mapObj = this.prefab.GetComponent<MapObject>();
             if (mapObj == null) {
-                Debug.Log(this.prefab.name);
                 Application.Quit();
-                throw new Exception("An object was registered with an id of " + id + " but the prefab contains no components of type MapObject!  Stopping Application!");
+                throw new Exception("An object was registered with an id of " + id + " and a name of " + this.prefab.name + ", but the prefab contains no components of type MapObject!  Stopping Application!");
             }
             this.type = mapObj.GetType();
         }

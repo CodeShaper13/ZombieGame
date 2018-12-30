@@ -1,12 +1,15 @@
-﻿using UnityEngine;
+﻿using fNbt;
+using UnityEngine;
 
 public class BuildingTower : BuildingBase {
 
     private UnitBase target;
     private float fireCooldown;
 
-    public override void onUpdate(float deltaTime) {
-        base.onUpdate(deltaTime);
+    public MeshRenderer middleRenderer;
+
+    protected override void preformTask(float deltaTime) {
+        base.preformTask(deltaTime);
 
         this.fireCooldown -= deltaTime;
 
@@ -33,6 +36,26 @@ public class BuildingTower : BuildingBase {
         return new Vector2(3, 3);
     }
 
+    public override void readFromNbt(NbtCompound tag) {
+        base.readFromNbt(tag);
+
+        this.fireCooldown = tag.getFloat("fireCooldown");
+        MapObject obj = this.map.findMapObjectFromGuid(tag.getGuid("targetGuid"));
+        if(obj is UnitBase) {
+            this.target = (UnitBase)obj;
+        }
+        else {
+            this.target = null;
+        }
+    }
+
+    public override void writeToNbt(NbtCompound tag) {
+        base.writeToNbt(tag);
+
+        tag.setTag("fireCooldown", this.fireCooldown);
+        tag.setTag("targetGuid", this.target.getGuid());
+    }
+
     /// <summary>
     /// Trys to find a target.
     /// </summary>
@@ -43,7 +66,7 @@ public class BuildingTower : BuildingBase {
     }
 
     public override void colorObject() {
-        this.transform.GetChild(0).GetComponent<MeshRenderer>().material.color = this.getTeam().getTeamColor();
+        this.middleRenderer.material.color = this.getTeam().getColor();
     }
 
     private UnitBase findUnit() {

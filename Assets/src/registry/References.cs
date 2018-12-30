@@ -13,9 +13,6 @@ public class References : MonoBehaviour {
 
     private List<GameObject> allPrefabs = new List<GameObject>();
 
-    [SerializeField]
-    private NetworkManager networkManager;
-
     [Header("")] // Add an empty line.
 
     // Objects that are registered:
@@ -33,6 +30,8 @@ public class References : MonoBehaviour {
     public GameObject prefabBuildingWorkshop;
     public GameObject prefabBuildingWall;
 
+    public GameObject prefabHarvestableTree;
+
     // Other:
     public GameObject prefabHealthBarEffect;
 
@@ -46,6 +45,8 @@ public class References : MonoBehaviour {
     public TextAsset femaleNames;
     public TextAsset lastNames;
     public TextAsset constants;
+
+    public GameObject mapPrefab;
 
     private void Awake() {
         References.list = this;
@@ -64,10 +65,16 @@ public class References : MonoBehaviour {
         this.add(this.prefabBuildingWorkshop);
         this.add(this.prefabBuildingWall);
 
+        this.add(this.prefabHarvestableTree);
+
         this.add(this.prefabHealthBarEffect);
 
         this.add(this.prefabEnemy);
 
+        this.add(this.mapPrefab);
+    }
+
+    public void func(NetworkManager networkManager) {
         foreach (GameObject prefab in this.allPrefabs) {
             networkManager.spawnPrefabs.Add(prefab);
         }

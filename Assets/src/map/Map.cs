@@ -17,11 +17,16 @@ public class Map : NetworkBehaviour {
     
     public MapData mapData;
 
+    /// <summary>
+    /// A List of all the connected players.
+    /// </summary>
     [ServerSideOnly]
-    public List<Player> allPlayers;
+    public List<ConnectedPlayer> allPlayers;
 
     private void Awake() {
         Map.instance = this;
+
+        this.mapData = GameObject.FindObjectOfType<MapData>();
     }
 
     public override void OnStartClient() {
@@ -32,14 +37,13 @@ public class Map : NetworkBehaviour {
 
     public override void OnStartServer() {
         this.mapObjects = new List<MapObject>();
-        this.allPlayers = new List<Player>();
+        this.allPlayers = new List<ConnectedPlayer>();
 
         this.handler = new NetHandlerServer(this);
 
         // Setup state of game.
         this.timer = this.mapData.setupTime;
-        this.gameState = EnumGameState.PREPARE;
-        this.mapObjects.Clear();
+        this.gameState = EnumGameState.PLAY;
     }
 
     private void Update() {
@@ -103,11 +107,11 @@ public class Map : NetworkBehaviour {
     /// Be sure to call the spawn method AFTER modifying the newly spawned MapObject.
     /// </summary>
     [ServerSideOnly]
-    public SpawnInstructions<T> spawnEntity<T>(GameObject prefab, Vector3 position, Quaternion? rotation = null, Vector3? scale = null) where T : MapObject {
+    public SpawnInstructions<T> spawnEntity<T>(RegisteredObject registerObj, Vector3 position, Quaternion? rotation = null, Vector3? scale = null) where T : MapObject {
         if(rotation == null) {
             rotation = Quaternion.identity;
         }
-        GameObject entity = GameObject.Instantiate(prefab, position, (Quaternion)rotation);
+        GameObject entity = GameObject.Instantiate(registerObj.getPrefab(), position, (Quaternion)rotation);
         if(scale != null) {
             entity.transform.localScale = (Vector3)scale;
         }
@@ -130,10 +134,23 @@ public class Map : NetworkBehaviour {
         }
     }
 
-    public MapObject findClosestObject(Vector3 point, Predicate<MapObject> validPredicate) {
-        return Util.closestToPoint(point, this.mapObjects);
+    public MapObject findMapObjectFromGuid(Guid guid) {
+        foreach(MapObject obj in this.mapObjects) {
+            if(obj.getGuid() == guid) {
+                return obj;
+            }
+        }
+        return null;
     }
 
+    /// <summary>
+    /// Returns the closest MapObject to the passed point.
+    /// </summary>
+    public MapObject findClosestObject(Vector3 point, Predicate<MapObject> validPredicate) {
+        return Util.closestToPoint(point, this.mapObjects, validPredicate);
+    }
+
+    [ServerSideOnly]
     public void removeEntity(MapObject mapObj, bool haveDeathEffect = true) {
         this.mapObjects.Remove(mapObj);
 
@@ -151,21 +168,33 @@ public class Map : NetworkBehaviour {
     /// Sends a message to all of the connected players.
     /// </summary>
     [ServerSideOnly]
-    private void sendMessageToAll(AbstractMessage<NetHandlerClient> message) {
-        foreach(NetworkConnection nc in NetworkServer.connections) {
-            if(nc != null) {
-                this.sendMessage(nc, message);
-            } else {
-                Debug.LogWarning("Null connection!");
-            }
+    public void sendMessageToAll(AbstractMessage<NetHandlerClient> message) {
+        foreach(ConnectedPlayer cp in this.allPlayers) {
+            cp.sendMessage(message);
         }
     }
 
-    /// <summary>
-    /// Sends a message to a specific player.
-    /// </summary>
+    private Player playerFromTeam(Team team) {
+        foreach(ConnectedPlayer cp in this.allPlayers) {
+            if(cp.getTeam() == team) {
+                return cp.getPlayer();
+            }
+        }
+        return null;
+    }
+
     [ServerSideOnly]
-    private void sendMessage(NetworkConnection connection, AbstractMessage<NetHandlerClient> message) {
-        connection.Send(message.getID(), message);
+    public void reduceResources(Team team, int amount) {
+        this.playerFromTeam(team).currentTeamResources -= amount;
+    }
+
+    [ServerSideOnly]
+    public void increaceResources(Team team, int amount) {
+        this.playerFromTeam(team).currentTeamResources += amount;
+    }
+
+    [ServerSideOnly]
+    public int getResources(Team team) {
+        return this.playerFromTeam(team).currentTeamResources;
     }
 }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using fNbt;
+using UnityEngine;
 using UnityEngine.AI;
 
 [RequireComponent(typeof(NavMeshAgent))]
@@ -18,15 +19,19 @@ public abstract class UnitBase : SidedEntity {
     public override void onAwake() {
         base.onAwake();
 
-        this.moveHelper = new MoveHelper(this);
-        this.attack = this.createAttackMethod();
+        if(this.isServer) {
+            this.moveHelper = new MoveHelper(this);
+            this.attack = this.createAttackMethod();
+        }
     }
 
     public override void onStart() {
         base.onStart();
 
-        this.unitStats = new UnitStats(this.getData());
-        this.setTask(null);
+        if(this.isServer) {
+            this.unitStats = new UnitStats(this.getData());
+            this.setTask(null);
+        }
     }
 
     public override void onUpdate(float deltaTime) {
@@ -53,6 +58,7 @@ public abstract class UnitBase : SidedEntity {
         this.unitStats.timeAlive.increase(Time.deltaTime);
     }
 
+    [ClientSideOnly]
     public override void drawDebug() {
         base.drawDebug();
 
@@ -68,12 +74,12 @@ public abstract class UnitBase : SidedEntity {
     public override void colorObject() {
         base.colorObject();
 
-        Color color = this.getTeam().getTeamColor();
+        Color color = this.getTeam().getColor();
         this.GetComponent<MeshRenderer>().material.color = color;
     }
 
     public virtual Vector3 getFootPos() {
-        return this.transform.position - new Vector3(0, -1, 0);
+        return this.transform.position - new Vector3(0, 1, 0);
     }
 
     public override float getSizeRadius() {
@@ -85,6 +91,7 @@ public abstract class UnitBase : SidedEntity {
     /// <summary>
     /// Sets the units task.  Pass null to set the current task to idle.
     /// </summary>
+    [ServerSideOnly]
     public void setTask(ITask newTask, bool forceCancelPrevious = false) {
         // Explicitly setting a task while a unit is moving stops it's walk.
         this.overrideMovementDestination = null;
@@ -128,6 +135,32 @@ public abstract class UnitBase : SidedEntity {
 
     public override float getHealthBarHeight() {
         return 1.95f;
+    }
+
+    public override void readFromNbt(NbtCompound tag) {
+        base.readFromNbt(tag);
+
+        this.lastPos = tag.getVector3("lastPos");
+        this.unitStats = new UnitStats(tag, this.getData());
+
+        bool flag = tag.getBool("hasMovementOverride");
+        if(flag) {
+            this.overrideMovementDestination = tag.getVector3("overrideMovementDestination");
+            this.overrideMovementStopDis = tag.getFloat("overrideMovementStopDis");
+        }
+    }
+
+    public override void writeToNbt(NbtCompound tag) {
+        base.writeToNbt(tag);
+
+        tag.setTag("lastPos", this.lastPos);
+        this.unitStats.writeToNBT(tag);
+
+        tag.setTag("hasMovementOverride", this.overrideMovementDestination != null);
+        if(this.overrideMovementDestination != null) {
+            tag.setTag("overrideMovementDestination", (Vector3)this.overrideMovementDestination);
+            tag.setTag("overrideMovementStopDis", this.overrideMovementStopDis);
+        }
     }
 
     /// <summary>

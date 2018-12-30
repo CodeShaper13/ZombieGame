@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 33007569702877838}
   - component: {fileID: 65590341859087052}
   - component: {fileID: 23922228349977198}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Flag
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -37,7 +37,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4135983350089260}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: FlagRotatePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -59,7 +59,7 @@ GameObject:
   - component: {fileID: 114212486605467704}
   - component: {fileID: 208057581241953534}
   - component: {fileID: 114193972928225348}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Building_Flag
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using fNbt;
+using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class BuildingQueuedProducerBase : BuildingBase {
@@ -32,7 +33,7 @@ public abstract class BuildingQueuedProducerBase : BuildingBase {
                 this.trainingQueue.RemoveAt(0);
 
                 SpawnInstructions<SidedEntity> instructions = this.map.spawnEntity<SidedEntity>(
-                    regObj.getPrefab(),
+                    regObj,
                     pos,
                     Quaternion.Euler(0, Random.Range(0, 359), 0));
                 instructions.getObj().setTeam(this.getTeam());
@@ -61,5 +62,29 @@ public abstract class BuildingQueuedProducerBase : BuildingBase {
 
     public float getTrainingProgress() {
         return this.trainingProgress;
+    }
+
+    public override void readFromNbt(NbtCompound tag) {
+        base.readFromNbt(tag);
+
+        this.trainingProgress = tag.getFloat("trainingProgress");
+
+        NbtList list = tag.getList("trainingQueue");
+        foreach(NbtInt integer in list) {
+            this.trainingQueue.Add(Registry.getObjectFromRegistry(integer.Value));
+        }
+    }
+
+    public override void writeToNbt(NbtCompound tag) {
+        base.writeToNbt(tag);
+
+        tag.setTag("trainingProgress", this.trainingProgress);
+
+        //TODO check
+        NbtList list = new NbtList("trainingQueue", NbtTagType.Int);
+        foreach(RegisteredObject ro in this.trainingQueue) {
+            list.Add(new NbtInt(ro.getId()));
+        }
+        tag.Add(list);
     }
 }

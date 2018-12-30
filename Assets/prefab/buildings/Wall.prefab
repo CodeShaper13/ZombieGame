@@ -20,7 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4629867710230156}
   - component: {fileID: 208833714777682500}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: NavObstacleSide
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -35,7 +35,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4848258274564070}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: HidingSpot_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -50,7 +50,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4341641972064830}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: HidingSpot_3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -65,7 +65,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4693512285501714}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: HidingSpot_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -81,7 +81,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4003625177717300}
   - component: {fileID: 208218970525224520}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: NavObstacleSide
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -104,7 +104,7 @@ GameObject:
   - component: {fileID: 208980645929453874}
   - component: {fileID: 114883350307534322}
   - component: {fileID: 114476189455848094}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -131,7 +131,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1724113632208924}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -7.2144566, y: 0.00000011920929, z: 10.649418}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4003625177717300}

@@ -17,14 +17,14 @@ public class TaskRepair : TaskBase<UnitBuilder> {
         this.building = newBuilding;
         this.isConstructing = isConstructing;
 
-        Vector3 v1 = this.building.getPos();
-        Vector2 v = this.building.getFootprintSize() / 2;
+        Vector3 bPos = this.building.getPos();
+        Vector2 footprint = this.building.getFootprintSize() / 2;
         const float f = 0.5f;
         this.points = new Vector3[] {
-                v1 + new Vector3(v.x + f, 0, 0),
-                v1 + new Vector3(0, 0, v.y + f),
-                v1 + new Vector3(-v.x - f, 0, 0),
-                v1 + new Vector3(0, 0, -v.y - f) };
+                bPos + new Vector3(footprint.x + f, 0, 0),
+                bPos + new Vector3(0, 0, footprint.y + f),
+                bPos + new Vector3(-footprint.x - f, 0, 0),
+                bPos + new Vector3(0, 0, -footprint.y - f) };
 
         this.whackPoint = this.pickWhackPoint();
 
@@ -33,7 +33,7 @@ public class TaskRepair : TaskBase<UnitBuilder> {
 
     public override bool preform() {
         if(Util.isAlive(this.building)) {
-            if(this.func()) {
+            if(this.isNextToWhackPoint()) {
                 this.moveHelper.stop();
                 this.building.increaseConstructed(true);
 
@@ -55,12 +55,13 @@ public class TaskRepair : TaskBase<UnitBuilder> {
     }
 
     public override void drawDebug() {
-        foreach(Vector3 v in this.points) {
-            GLDebug.DrawArrow(v, Vector3.up * 2.5f, 0.25f, 20, v == this.whackPoint ? Colors.orange : Color.yellow);
+        foreach(Vector3 point in this.points) {
+            Color color = point == this.whackPoint ? Colors.orange : Color.yellow;
+            GLDebug.DrawArrow(point, Vector3.up * 2.5f, 0.25f, 20, color);
         }
 
         if(Util.isAlive(this.building)) {
-            GLDebug.DrawLine(this.unit.getPos(), this.building.getPos(), this.func() ? Colors.green : Colors.red);
+            GLDebug.DrawLine(this.unit.getFootPos(), this.building.getPos(), this.isNextToWhackPoint() ? Colors.green : Colors.red);
         }
     }
 
@@ -72,10 +73,13 @@ public class TaskRepair : TaskBase<UnitBuilder> {
         return true;
     }
 
-    private bool func() {
+    private bool isNextToWhackPoint() {
         return this.getDistance(this.whackPoint) < 0.25f;
     }
 
+    /// <summary>
+    /// Picks a random point for the builder to whack.
+    /// </summary>
     private Vector3 pickWhackPoint() {
         return this.points[Random.Range(0, this.points.Length - 1)];
     }

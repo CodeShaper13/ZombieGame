@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class SelectedParty : SelectedDisplayerBase {
@@ -50,7 +51,7 @@ public class SelectedParty : SelectedDisplayerBase {
 
     [ClientSideOnly]
     public override void callFunctionOn(ActionButton actionButton) {
-        this.player.callActionButton(actionButton, this.getAllUnits().ToArray());
+        this.player.callActionButton(actionButton, this.getAllUnits().Cast<SidedEntity>().ToList());
     }
 
     public override void clearSelected() {

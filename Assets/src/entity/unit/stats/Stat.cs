@@ -1,4 +1,5 @@
-﻿using System;
+﻿using fNbt;
+using System;
 
 public abstract class Stat<T> {
 
@@ -21,6 +22,10 @@ public abstract class Stat<T> {
         this.unitStats.dirty = true;
     }
 
+    public abstract void readFromNbt(NbtCompound tag);
+
+    public abstract void writeToNbt(NbtCompound tag);
+
     public string getDisplayName() {
         return this.displayName;
     }
@@ -38,6 +43,14 @@ public class StatInt : Stat<int> {
         base.increase(amount);
         this.value += amount;
     }
+
+    public override void readFromNbt(NbtCompound tag) {
+        this.value = tag.getInt(this.saveName);
+    }
+
+    public override void writeToNbt(NbtCompound tag) {
+        tag.setTag(this.saveName, this.value);
+    }
 }
 
 public class StatFloat : Stat<float> {
@@ -47,6 +60,14 @@ public class StatFloat : Stat<float> {
     public override void increase(float amount) {
         base.increase(amount);
         this.value += amount;
+    }
+
+    public override void readFromNbt(NbtCompound tag) {
+        this.value = tag.getFloat(this.saveName);
+    }
+
+    public override void writeToNbt(NbtCompound tag) {
+        tag.setTag(this.saveName, this.value);
     }
 }
 

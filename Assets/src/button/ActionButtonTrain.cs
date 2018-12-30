@@ -11,12 +11,14 @@
             BuildingTrainingHouse trainingHouse = (BuildingTrainingHouse)unit;
             if(trainingHouse.tryAddToQueue(obj)) {
                 // Remove resources
-                trainingHouse.getTeam().reduceResources(this.entityData.cost);
+                trainingHouse.map.reduceResources(trainingHouse.getTeam(), this.entityData.cost);
+                //trainingHouse.getTeam().reduceResources(this.entityData.cost);
             }
         });
 
         this.setShouldDisableFunction((entity) => {
-            return this.entityData.cost > entity.getTeam().getResources();
+            return this.entityData.cost > Player.localPlayer.currentTeamResources;
+            //return this.entityData.cost > entity.getTeam().getResources();
         });
     }
 

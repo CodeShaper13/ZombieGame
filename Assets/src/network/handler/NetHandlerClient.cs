@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine.Networking;
+﻿using UnityEngine.Networking;
 
 public class NetHandlerClient : NetHandlerBase {
 
@@ -10,8 +9,8 @@ public class NetHandlerClient : NetHandlerBase {
     }
 
     protected override void registerHandlers() {
-        this.func01<MessageShowAnnouncement>();
-        this.func01<MessageChangeGameState>();
+        this.registerMsg<MessageShowAnnouncement>();
+        this.registerMsg<MessageChangeGameState>();
     }
 
     public void showAnnouncement(MessageShowAnnouncement msg) {
@@ -22,7 +21,7 @@ public class NetHandlerClient : NetHandlerBase {
         Player.localPlayer.setGameState(msg.newState);
     }
 
-    private void func01<T>() where T : AbstractMessage<NetHandlerClient>, new() {
+    private void registerMsg<T>() where T : AbstractMessage<NetHandlerClient>, new() {
         NetworkManager.singleton.client.RegisterHandler(new T().getID(), delegate (NetworkMessage netMsg) {
             T msg = netMsg.ReadMessage<T>();
             msg.processMessage(this);

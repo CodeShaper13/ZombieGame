@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class MessageRunAction : AbstractMessage<NetHandlerServer> {
 
@@ -8,13 +9,13 @@ public class MessageRunAction : AbstractMessage<NetHandlerServer> {
 
     public MessageRunAction() { }
 
-    public MessageRunAction(int buttonID, params SidedEntity[] objs) : this(buttonID, -1, objs) { }
+    public MessageRunAction(int buttonID, List<SidedEntity> objs) : this(buttonID, -1, objs) { }
 
-    public MessageRunAction(int buttonID, int childIndex, params SidedEntity[] objs) {
+    public MessageRunAction(int buttonID, int childIndex, List<SidedEntity> objs) {
         this.buttonID = buttonID;
         this.childIndex = childIndex;
-        this.targets = new GameObject[objs.Length];
-        for(int i = 0; i < objs.Length; i++) {
+        this.targets = new GameObject[objs.Count];
+        for(int i = 0; i < objs.Count; i++) {
             this.targets[i] = objs[i].gameObject;
         }
     }

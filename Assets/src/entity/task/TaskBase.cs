@@ -55,7 +55,7 @@ public abstract class TaskBase<T> : ITask where T : UnitBase {
     }
 
     protected float getDistance(Vector3 point) {
-        return Vector3.Distance(unit.getFootPos(), point);
+        return Vector3.Distance(this.unit.getFootPos(), point);
     }
 
     ///// <summary>

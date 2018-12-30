@@ -1,11 +1,16 @@
-﻿using UnityEngine;
+﻿using fNbt;
+using UnityEngine;
+using UnityEngine.Networking;
 
 public abstract class BuildingBase : SidedEntity {
+
+    private const float BUILDING_ROT_SPEED = 250;
 
     /// <summary>
     /// True if the building is being constructed.  Buildings that
     /// are still being built can not function.
     /// </summary>
+    [SyncVar]
     private bool constructing;
     private float buildProgress;
 
@@ -21,7 +26,7 @@ public abstract class BuildingBase : SidedEntity {
             this.transform.rotation = Quaternion.RotateTowards(
                 this.transform.rotation,
                 Quaternion.Euler(0, this.targetRotation, 0),
-                250 * deltaTime);
+                BUILDING_ROT_SPEED * deltaTime);
         }
     }
 
@@ -82,7 +87,8 @@ public abstract class BuildingBase : SidedEntity {
         this.setHealth((int)this.buildProgress);
 
         if(deductResources && (int)buildProgress > this.getHealth()) {
-            this.getTeam().reduceResources(1);
+            this.map.reduceResources(this.getTeam(), 1);
+            //this.getTeam().reduceResources(1);
         }
 
         if((int)this.buildProgress >= this.getMaxHealth()) {
@@ -103,5 +109,21 @@ public abstract class BuildingBase : SidedEntity {
         if(this.targetRotation >= 360) {
             this.targetRotation = 0;
         }
+    }
+
+    public override void readFromNbt(NbtCompound tag) {
+        base.readFromNbt(tag);
+
+        this.constructing = tag.getBool("isBuilding");
+        this.buildProgress = tag.getFloat("progress");
+        this.targetRotation = tag.getInt("targetRotation");
+    }
+
+    public override void writeToNbt(NbtCompound tag) {
+        base.writeToNbt(tag);
+
+        tag.setTag("isBuilding", this.constructing);
+        tag.setTag("progress", this.buildProgress);
+        tag.setTag("targetRotation", this.targetRotation);
     }
 }

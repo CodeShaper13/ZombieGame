@@ -1,6 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
-
 
 public class SelectedBuilding : SelectedDisplayerBase {
 
@@ -63,7 +63,9 @@ public class SelectedBuilding : SelectedDisplayerBase {
 
     [ClientSideOnly]
     public override void callFunctionOn(ActionButton actionButton) {
-        this.player.callActionButton(actionButton, this.selected);
+        List<SidedEntity> list = new List<SidedEntity>(1);
+        list.Add(this.selected);
+        this.player.callActionButton(actionButton, list);
     }
 
     public override void clearSelected() {
