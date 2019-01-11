@@ -59,6 +59,7 @@ GameObject:
   - component: {fileID: 114212486605467704}
   - component: {fileID: 208057581241953534}
   - component: {fileID: 114193972928225348}
+  - component: {fileID: 114319571228201600}
   m_Layer: 10
   m_Name: Building_Flag
   m_TagString: Untagged
@@ -245,6 +246,27 @@ MonoBehaviour:
   immutable: 0
   flagRotatePoint: {fileID: 4135983350089260}
   flagCloth: {fileID: 23922228349977198}
+--- !u!114 &114319571228201600
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1859688848056336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1768714887, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_TransformSyncMode: 1
+  m_SendInterval: 0.1
+  m_SyncRotationAxis: 2
+  m_RotationSyncCompression: 0
+  m_SyncSpin: 0
+  m_MovementTheshold: 0.001
+  m_VelocityThreshold: 0.0001
+  m_SnapThreshold: 5
+  m_InterpolateRotation: 1
+  m_InterpolateMovement: 1
 --- !u!114 &114793621151056832
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -286,7 +308,7 @@ NavMeshObstacle:
   m_Enabled: 1
   serializedVersion: 3
   m_Shape: 1
-  m_Extents: {x: 0.5, y: 0.5, z: 0.5}
+  m_Extents: {x: 0.45, y: 0.5, z: 0.45}
   m_MoveThreshold: 0.1
   m_Carve: 1
   m_CarveOnlyStationary: 1

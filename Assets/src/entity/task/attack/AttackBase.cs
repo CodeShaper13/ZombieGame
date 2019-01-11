@@ -10,7 +10,7 @@ public abstract class AttackBase {
         this.unit = unit;
     }
 
-    public virtual SidedEntity attack(SidedEntity target) {
+    public virtual LivingObject attack(LivingObject target) {
         if(Time.time >= (this.lastAttack + Constants.AI_MELEE_ATTACK_RATE) && this.inRangeToAttack(target)) {
             this.preformAttack(target);
             this.lastAttack = Time.time;
@@ -21,12 +21,12 @@ public abstract class AttackBase {
     /// <summary>
     /// Checks if this unit is in range to preform an attack on the passed target.
     /// </summary>
-    public abstract bool inRangeToAttack(SidedEntity target);
+    public abstract bool inRangeToAttack(LivingObject target);
 
     /// <summary>
     /// Attempts to preform an attack on the passed target.  The attack will fail if
     /// <see cref="inRangeToAttack(SidedObjectEntity)"/> returns false or the
     /// attack cooldown has not finished.
     /// </summary>
-    protected abstract void preformAttack(SidedEntity target);
+    protected abstract void preformAttack(LivingObject target);
 }

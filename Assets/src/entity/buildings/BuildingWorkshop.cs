@@ -15,7 +15,7 @@ public class BuildingWorkshop : BuildingQueuedProducerBase {
     }
 
     public override int getButtonMask() {
-        return base.getButtonMask(); // | ActionButton.buildSpecial.getMask();
+        return base.getButtonMask();
     }
 
     public override int getQueueSize() {

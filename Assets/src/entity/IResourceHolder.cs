@@ -16,6 +16,10 @@ public interface IResourceHolder {
     /// <summary>
     /// Returns true if the holder can hold more resources.
     /// </summary>
-    /// <returns></returns>
     bool canHoldMore();
+
+    /// <summary>
+    /// Sets the number of resources in this holder.
+    /// </summary>
+    void setHeldResources(int amount);
 }

@@ -42,7 +42,6 @@ GameObject:
   - component: {fileID: 114384576110442854}
   - component: {fileID: 114579704815428162}
   - component: {fileID: 195634556573398844}
-  - component: {fileID: 114114813385185228}
   - component: {fileID: 143698511270556272}
   - component: {fileID: 114355258987009510}
   - component: {fileID: 114405622571958516}
@@ -164,25 +163,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1441575702510258}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &114114813385185228
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1745107307414210}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1267208747, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Target: {fileID: 4521781349977106}
-  m_ChildIndex: 0
-  m_SendInterval: 0.1
-  m_SyncRotationAxis: 2
-  m_RotationSyncCompression: 0
-  m_MovementThreshold: 0.001
-  m_InterpolateRotation: 0.5
-  m_InterpolateMovement: 0.5
 --- !u!114 &114355258987009510
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -196,7 +176,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   map: {fileID: 0}
   immutable: 0
-  head: {fileID: 0}
+  heldResources: 0
 --- !u!114 &114384576110442854
 MonoBehaviour:
   m_ObjectHideFlags: 1

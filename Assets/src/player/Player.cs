@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using fNbt;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Networking;
@@ -25,6 +26,8 @@ public class Player : NetworkBehaviour {
     [SerializeField]
     /// <summary> A reference to the main canvas holding all of the UI elements. </summary>
     private Canvas mainCanvas;
+    [SerializeField]
+    private Canvas canvasNoRaycast;
 
     // Selected object(s).
     public SelectedParty selectedParty;
@@ -32,7 +35,8 @@ public class Player : NetworkBehaviour {
     public SelectedDisplayerBase getSelected() {
         if(this.selectedBuilding.isSelected()) {
             return this.selectedBuilding;
-        } else {
+        }
+        else {
             return this.selectedParty;
         }
     }
@@ -42,10 +46,13 @@ public class Player : NetworkBehaviour {
     public BuildOutline buildOutline;
     public SelectionBox selectionBox;
 
+    public UnitDestinationEffect unitDestinationEffect;
+    public AttackTargetEffect attackTargetEffect;
+
     private EnumGameState gameState;
 
     public Team team;
-    public GameObject cameraObj;
+    public Camera playerCamera;
 
     private NetHandlerClient handler;
 
@@ -54,6 +61,7 @@ public class Player : NetworkBehaviour {
 
     /// <summary> Time in seconds until the announcement text should vanish. </summary>
     private float announcementTimer;
+    private Options options;
 
     private void Start() {
         this.map = GameObject.FindObjectOfType<Map>();
@@ -64,34 +72,86 @@ public class Player : NetworkBehaviour {
     }
 
     public override void OnStartLocalPlayer() {
-        this.initGUIs();
+        this.initUIs();
+
+        GameObject.FindObjectOfType<NetworkManagerHUD>().showGUI = false;
     }
 
     /// <summary>
     /// Reveals and initializes the Player's Camera and UI elements.
     /// </summary>
-    public void initGUIs() {
+    public void initUIs() {
         Player.localPlayer = this;
 
+        this.options = new Options();
+
         // Enable the Camera and HUD.
-        this.cameraObj.SetActive(true);
+        this.playerCamera.gameObject.SetActive(true);
         this.mainCanvas.gameObject.SetActive(true);
+        this.canvasNoRaycast.gameObject.SetActive(true);
 
         this.actionButtons.init();
         this.selectedParty.init(this);
         this.selectedBuilding.init(this);
 
+        this.selectionBox.init(this);
+
         this.buildOutline.gameObject.SetActive(true);
-        this.buildOutline.init(this, this.map);
+        this.buildOutline.init(this);
+
+        this.unitDestinationEffect = GameObject.Instantiate(References.list.prefabUnitDestinationEffect).GetComponent<UnitDestinationEffect>();
+        this.attackTargetEffect = GameObject.Instantiate(References.list.prefabAttackTargetEffect).GetComponent<AttackTargetEffect>();
+    }
+
+    /*
+    private void fetchCamera() {
+        this.playerCamera = Camera.main;
+        this.playerCamera.transform.parent = this.transform;
+        this.playerCamera.transform.position = new Vector3(-20, 20, 0);
+        this.playerCamera.transform.eulerAngles = new Vector3(45, 90, 0);
+    }
+
+    private void releaseCamera() {
+        this.playerCamera.transform.parent = null;
+    }
+    */
+
+    private void OnDestroy() {
+        if(this.isLocalPlayer) {
+            // If statements are for in the Editor, sometimes these objects are Destroyed before the Player.
+            if(this.unitDestinationEffect != null) {
+                GameObject.Destroy(this.unitDestinationEffect.gameObject);
+            }
+            if(this.attackTargetEffect != null) {
+                GameObject.Destroy(this.attackTargetEffect.gameObject);
+            }
+
+            NetworkManagerHUD nmh = GameObject.FindObjectOfType<NetworkManagerHUD>();
+            if(nmh != null) {
+                nmh.showGUI = true;
+            }
+        }
+    }
+
+    private void LateUpdate() {
+        if(this.isClient && Main.DEBUG) {
+            foreach(MapObject obj in this.map.findMapObjects(null)) {
+                obj.drawDebug();
+            }
+        }
     }
 
     private void Update() {
         // Only handle input if this is a local player.
-        if(this.isLocalPlayer || Main.instance().isSinglePlayerGame) {
+        if(this.isLocalPlayer) {
+            if(GuiManager.currentGui != null) {
+                return;
+            }
+
             // Debug keys.
             if(Input.GetKeyDown(KeyCode.F3)) {
                 Main.DEBUG = !Main.DEBUG;
-                Debug.Log("Toggling Debug Mode.  It is now set to " + Main.DEBUG);
+                Logger.log("Toggling Debug Mode.  It is now set to " + Main.DEBUG);
             }
 
             if(Main.instance().isPaused()) {
@@ -116,10 +176,12 @@ public class Player : NetworkBehaviour {
 
                 this.updateHudCounts();
 
-                // Not paused.
+                // Only show this canvas if debug mode is on.
+                this.setupPhaseUI.gameObject.SetActive(Main.DEBUG);
+
                 if(Input.GetKeyDown(KeyCode.Escape)) {
                     // Escape was pressed, canceling things or if nothing can be canceled, pause the game.
-                    if(this.actionButtons.delayedButtonRef != null) {
+                    if(this.actionButtons.getDelayedActionButton() != null) {
                         this.actionButtons.cancelDelayedAction();
                     }
                     else if(this.buildOutline.isEnabled()) {
@@ -147,11 +209,11 @@ public class Player : NetworkBehaviour {
     }
 
     /// <summary>
-    /// Moves and pans the camera based on the input form the user.
+    /// Moves and pans the Camera based on the input from the user.
     /// </summary>
     private void handleCameraMovement() {
         // Move position.
-        const float sensitivity = 40f;
+        float sensitivity = this.options.sensitivity.get();
         float forwardSpeed = Input.GetAxis("Vertical") * sensitivity * Time.deltaTime;
         float sideSpeed = (Input.GetAxis("Horizontal") * sensitivity * Time.deltaTime) * -1;
         this.transform.Translate(forwardSpeed, 0, sideSpeed);
@@ -159,14 +221,13 @@ public class Player : NetworkBehaviour {
         // Zoom in and out.
         float zoom = Input.GetAxis("Mouse ScrollWheel");
         if(zoom != 0) {
-            const float zoomSensitivity = 300;
-            float f = zoom * Time.deltaTime * zoomSensitivity;
-            this.cameraObj.transform.Translate(0, 0, f);
+            float f = zoom * Time.deltaTime * this.options.zoomSensitivity.get();
+            this.playerCamera.transform.Translate(0, 0, f);
 
             float LOWEST_ZOOM = -12f;
             float HIGHEST_ZOOM = -40f;
 
-            float localZ = this.cameraObj.transform.localPosition.z;
+            float localZ = this.playerCamera.transform.localPosition.z;
             if(localZ > LOWEST_ZOOM) {
                 //this.cameraObj.transform.Translate(0, 0, LOWEST_ZOOM - localZ);
             }
@@ -184,54 +245,75 @@ public class Player : NetworkBehaviour {
 
         if(leftBtnUp || rightBtnUp) {
             RaycastHit hit;
-            if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, float.PositiveInfinity)) {
-                SidedEntity entity = hit.transform.gameObject.GetComponent<SidedEntity>();
-                if(entity == null) {
-                    // Didn't click anything, move the party to the clicked point.
-                    TeamGround tg = hit.transform.GetComponent<TeamGround>();
-                    if(tg != null) {
-                        if(Input.GetKey(KeyCode.LeftShift)) {
-                            PlaceableObject po = this.setupPhaseUI.getSelectedObject();
-                            if(po != null && po.getCount() > 0) {
-                                Team t = Input.GetKey(KeyCode.LeftControl) ? Team.BLUE : this.team;
-                                this.sendMessageToServer(new MessageSpawnEntity(po.registeredObject, hit.point, Vector3.zero, t));
-                                po.setCount(po.getCount() - 1);
+            if(Physics.Raycast(this.playerCamera.ScreenPointToRay(Input.mousePosition), out hit, float.PositiveInfinity)) {
+                SidedEntity clickedEntity = hit.transform.gameObject.GetComponent<SidedEntity>();
+                if(clickedEntity == null) {
+                    TeamGround sidedGround = hit.transform.GetComponent<TeamGround>();
+                    if(sidedGround != null && sidedGround.canInteractWith(this)) {
+                        // Didn't click anything.
+                        if(leftBtnUp) {
+                            if(Input.GetKey(KeyCode.LeftShift) && Main.DEBUG) {
+                                // Spawn something becuase shift was pressed.
+                                PlaceableObject po = this.setupPhaseUI.getSelectedObject();
+                                if(po != null && (po.getCount() > 0 || po.getCount() == -1)) {
+                                    Team t = Input.GetKey(KeyCode.LeftControl) ? Team.BLUE : this.team;
+                                    this.sendMessageToServer(new MessageSpawnEntity(po.registeredObject, hit.point, Vector3.zero, t));
+                                    po.setCount(po.getCount() - 1);
+                                }
                             }
-                        } else {
-                            //if(leftBtnUp && hit.transform.CompareTag(Tags.ground)) {
-                            this.actionButtons.closePopupButtons();
-                            this.selectedParty.moveAllTo(hit.point);
+                            else {
+                                this.actionButtons.closePopupButtons();
+                                bool unitMoved = this.selectedParty.moveAllTo(hit.point);
+                                if(unitMoved) {
+                                    this.unitDestinationEffect.setPosition(hit.point);
+                                }
+                            }
                         }
-
                         if(rightBtnUp) {
-                            this.actionButtons.closePopupButtons();
-                            this.getSelected().clearSelected();
                             // Deselect all selected Units.
+                            this.getSelected().clearSelected();
                         }
                     }
                 }
                 else {
                     // Clicked an Entity.
-                    if(this.actionButtons.delayedButtonRef != null) {
-                        ActionButtonRequireClick delayedButton = this.actionButtons.delayedButtonRef;
+                    if(this.actionButtons.getDelayedActionButton() != null) {
+                        ActionButtonRequireClick delayedButton = this.actionButtons.getDelayedActionButton();
                         // Check if this is a valid option to preform the action on.
-                        if(delayedButton.isValidForAction(this.team, entity)) {
+                        if(delayedButton.isValidForAction(this.team, clickedEntity)) {
                             if(this.selectedBuilding.getBuilding() != null) {
-                                delayedButton.callFunction(this.selectedBuilding.getBuilding(), entity);
+                                delayedButton.callFunction(this.selectedBuilding.getBuilding(), clickedEntity);
                             }
                             else {
-                                delayedButton.callFunction(this.selectedParty.getAllUnits(), entity);
+                                delayedButton.callFunction(this.selectedParty.getAllUnits(), clickedEntity);
                             }
                         }
                     }
                     else {
-                        if(entity.getTeam() == this.team) {
-                            // Clicked something on our team.
+                        if(clickedEntity.getTeam() == this.team) {
+                            // Clicked a SidedEntity that is on our team.
                             if(leftBtnUp) {
-                                this.onLeftBtnClick(entity);
+                                this.onLeftBtnClick(clickedEntity);
                             }
                             if(rightBtnUp) {
-                                this.onRightBtnClick(entity);
+                                this.onRightBtnClick(clickedEntity);
+                            }
+                        }
+                        else {
+                            // Clicked a SidedEntity not on our team.
+
+                            // Set all of the selected units that have the AttackNearby action to attack the clicked unit.
+                            int mask = ActionButton.unitAttackNearby.getMask();
+                            bool flag = false;
+                            foreach(UnitBase unit in this.selectedParty.getAllUnits()) {
+                                if((unit.getButtonMask() & mask) != 0) {
+                                    this.sendMessageToServer(new MessageAttackSpecific(unit, clickedEntity));
+                                    flag = true;
+                                }
+                            }
+
+                            if(flag) {
+                                this.attackTargetEffect.setTarget(clickedEntity);
                             }
                         }
                     }
@@ -251,7 +333,6 @@ public class Player : NetworkBehaviour {
         else if(entity is BuildingBase) {
             this.selectedBuilding.setSelected((BuildingBase)entity);
         }
-        this.actionButtons.updateSideButtons();
     }
 
     private void onRightBtnClick(SidedEntity entity) {
@@ -273,12 +354,11 @@ public class Player : NetworkBehaviour {
                 this.selectedBuilding.setSelected((BuildingBase)entity);
             }
         }
-        this.actionButtons.updateSideButtons();
     }
 
     public void setGameState(EnumGameState newState) {
         this.gameState = newState;
-//        this.setupPhaseUI.gameObject.SetActive(this.gameState == EnumGameState.PREPARE);
+        //        this.setupPhaseUI.gameObject.SetActive(this.gameState == EnumGameState.PREPARE);
     }
 
     public EnumGameState getGameState() {
@@ -296,6 +376,10 @@ public class Player : NetworkBehaviour {
     [ClientRpc]
     public void RpcSetTeam(int newTeamId) {
         this.team = Team.getTeamFromId(newTeamId);
+
+        Color c = this.team.getColor();
+        this.resourceText.color = c;
+        this.troopCountText.color = c;
     }
 
     /// <summary>
@@ -348,29 +432,31 @@ public class Player : NetworkBehaviour {
 
         int max = this.team.getMaxTroopCount(this.map);
         this.troopCountText.text = "Troops: " + currentTroopCount + "/" + max;
-        //this.troopCountText.fontStyle = (currentTroopCount == max ? FontStyle.Bold : FontStyle.Normal);
+        this.troopCountText.fontStyle = (currentTroopCount == max ? FontStyle.Bold : FontStyle.Normal);
 
         int res = this.currentTeamResources;
         this.resourceText.text = "Resources: " + res + "/" + maxResources;
-        //this.resourceText.fontStyle = (res == maxResources ? FontStyle.Bold : FontStyle.Normal);
+        this.resourceText.fontStyle = (res == maxResources ? FontStyle.Bold : FontStyle.Normal);
     }
 
     /// <summary>
     /// Sends a message to the server.
     /// </summary>
-    public void sendMessageToServer(AbstractMessage<NetHandlerServer> message) {
+    public void sendMessageToServer(AbstractMessageServer message) {
         base.connectionToServer.Send(message.getID(), message);
     }
 
     public void callActionButton(ActionButton button, List<SidedEntity> targets) {
         if(button.executeOnClientSide()) {
             button.callFunction(targets);
-        } else {
+        }
+        else {
             MessageRunAction msg;
             if(button is ActionButtonChild) {
                 ActionButtonChild abc = (ActionButtonChild)button;
                 msg = new MessageRunAction(abc.parentActionButton.getID(), abc.index, targets);
-            } else {
+            }
+            else {
                 msg = new MessageRunAction(button.getID(), targets);
             }
 
@@ -383,5 +469,15 @@ public class Player : NetworkBehaviour {
     /// </summary>
     public void enableBuildOutline(RegisteredObject registeredBuilding, UnitBuilder builder) {
         this.buildOutline.enableOutline(registeredBuilding, builder);
+    }
+
+    public void writeToNbt(NbtCompound tag) {
+        tag.setTag("playerPosition", this.transform.position);
+        tag.setTag("resources", this.currentTeamResources);
+    }
+
+    public void readFromNbt(NbtCompound tag) {
+        this.transform.position = tag.getVector3("playerPosition");
+        this.currentTeamResources = tag.getInt("resources");
     }
 }

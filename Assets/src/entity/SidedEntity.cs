@@ -7,9 +7,11 @@ using UnityEngine.Networking;
 public abstract class SidedEntity : LivingObject {
 
     [SyncVar]
+    [SerializeField]
     private int teamID;
     private OutlineHelper outlineHelper;
 
+    /*
     private void OnMouseDrag() {
         if(this.isLocalPlayer) {
             if(Player.localPlayer.getGameState() == EnumGameState.PREPARE && this.getTeam() == Player.localPlayer.getTeam()) {
@@ -23,12 +25,14 @@ public abstract class SidedEntity : LivingObject {
             }
         }
     }
+    */
 
+    [ClientSideOnly]
     public override void onUiInit() {
-        base.onUiInit();
-
         this.outlineHelper = new OutlineHelper(this.gameObject);
         this.setOutlineVisibility(false, EnumOutlineParam.ALL);
+
+        base.onUiInit(); // Base need to be called the OutlineHelper is set up.
 
         this.colorObject();
     }
@@ -40,12 +44,14 @@ public abstract class SidedEntity : LivingObject {
         return ActionButton.entityDestroy.getMask();
     }
 
+    [ServerSideOnly]
     public override void readFromNbt(NbtCompound tag) {
         base.readFromNbt(tag);
 
         this.teamID = tag.getInt("teamId"); // TODO Should the setter be called here?
     }
 
+    [ServerSideOnly]
     public override void writeToNbt(NbtCompound tag) {
         base.writeToNbt(tag);
 
@@ -61,24 +67,9 @@ public abstract class SidedEntity : LivingObject {
     }
 
     /// <summary>
-    /// Colors this object based on it's team.
+    /// Colors this object based on it's Team.
     /// </summary>
     public virtual void colorObject() { }
-
-    public SidedEntity getClosestEnemyObject() {
-        SidedEntity closest = null;
-        float d = float.PositiveInfinity;
-        foreach (SidedEntity s in this.map.mapObjects) {
-            if(s.getTeam() != this.getTeam()) {
-                float f = Vector3.Distance(this.transform.position, s.transform.position);
-                if (f < d) {
-                    d = f;
-                    closest = s;
-                }
-            }
-        }
-        return closest;
-    }
 
     /// <summary>
     /// Sets if the outline is visible.  An optional number can be passed to set the outline color.
@@ -86,4 +77,18 @@ public abstract class SidedEntity : LivingObject {
     public virtual void setOutlineVisibility(bool visible, EnumOutlineParam type) {
         this.outlineHelper.updateOutline(visible, type);
     }
+
+    /// <summary>
+    /// Called when this Entity is selected by the Player.
+    /// </summary>
+    [ClientSideOnly]
+    public virtual void onSelect() {
+    } //TODO not yet called.
+
+    /// <summary>
+    /// Called when this Entity is deselected by the Player.
+    /// </summary>
+    [ClientSideOnly]
+    public virtual void onDeselect() {
+    } //TODO not yet called.
 }

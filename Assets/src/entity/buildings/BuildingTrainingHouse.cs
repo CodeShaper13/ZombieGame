@@ -19,7 +19,7 @@ public class BuildingTrainingHouse : BuildingQueuedProducerBase {
     }
 
     public override int getButtonMask() {
-        return base.getButtonMask() | ActionButton.train.getMask();
+        return base.getButtonMask() | ActionButton.train;
     }
 
     public override int getQueueSize() {

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class BuildingStoreroom : BuildingBase {
+public class BuildingStoreroom : BuildingResourceHolder {
 
     public MeshRenderer domeRenderer;
 
@@ -18,5 +18,9 @@ public class BuildingStoreroom : BuildingBase {
 
     public override BuildingData getData() {
         return Constants.BD_STOREROOM;
+    }
+
+    public override int getHoldLimit() {
+        return Constants.BUILDING_STOREROOM_MAX_HOLD;
     }
 }

@@ -54,8 +54,6 @@ public class PartyButton : MonoBehaviour, IPointerClickHandler {
     /// Called when the info button is clicked.
     /// </summary>
     public void callback_infoButton() {
-        print("TODO");
-        //GuiScreenUnitStats guiStats = (GuiScreenUnitStats)GuiManager.openGui(GuiManager.unitStats);
-        //guiStats.set(this.party.getUnit(this.index));
+        Player.localPlayer.sendMessageToServer(new MessageRequestStats(this.party.getUnit(this.index)));
     }
 }

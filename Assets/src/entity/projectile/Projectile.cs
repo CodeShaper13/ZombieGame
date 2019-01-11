@@ -50,4 +50,8 @@ public class Projectile : MapObject {
         this.damage = damage;
         this.target = target;
     }
+
+    public override string getDisplayName() {
+        return "Projectile";
+    }
 }

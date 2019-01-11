@@ -7,31 +7,27 @@ public abstract class LivingObject : MapObject {
     [SyncVar(hook = "hookOnChangeHealth")]
     private int currentHealth;
     private ProgressBar healthBar;
+    private bool shouldShowHealth;
 
     public override void onAwake() {
         base.onAwake();
 
-        this.healthBar = ProgressBar.instantiateBar(
-            gameObject,
-            this.getHealthBarHeight(),
-            getMaxHealth(),
-            (curentValue, maxValue) => {
-                if(curentValue < (maxValue / 4)) {
-                    return Colors.red;
-                } else if(curentValue < (maxValue / 2)) {
-                    return Colors.orange;
-                } else {
-                    return Colors.lime;
-                }
-            });
-        this.currentHealth = getMaxHealth();
+        this.currentHealth = this.getMaxHealth();
+    }
+
+    public override void onUiInit() {
+        base.onUiInit();
+
+        this.shouldShowHealth = true; // Main.DEBUG_HEALTH || !(this is HarvestableObject); // || (this is SidedEntity && ((SidedEntity)this).getTeam() == Player.localPlayer.getTeam());
+
+        this.hookOnChangeHealth(this.currentHealth);
     }
 
     /// <summary>
     /// Returns true if this object is "dead", it's health is 0.
     /// </summary>
     public bool isDead() {
-        return currentHealth <= 0;
+        return this.currentHealth <= 0;
     }
 
     /// <summary>
@@ -46,28 +42,22 @@ public abstract class LivingObject : MapObject {
     /// the damage to the stat list.
     /// Pass -1 to set max health.
     /// </summary>
+    [ServerSideOnly]
     public void setHealth(int amount) {
         int maxHealth = this.getMaxHealth();
         if(amount == -1) {
             amount = maxHealth;
         }
         this.currentHealth = Mathf.Clamp(amount, 0, maxHealth);
-
-        //if(this.shouldShowHealth && this.shouldHealthbarBeShown()) {
-        //    if(this.healthBar == null) {
-        //        this.healthBar = ProgressBar.instantiateHealthbar(this.gameObject, this.getHealthBarHeight(), this.getMaxHealth());
-        //    }
-        //    this.healthBar.updateProgressBar(amount);
-        //    this.healthBar.setVisible(this.shouldHealthbarBeShown());
-        //}
     }
 
+    [ServerSideOnly]
     public bool damage(MapObject dealer, int amount) {
         // Make damage only taken on server.
-        if(isServer) {
+        if(this.isServer) {
             this.setHealth(this.getHealth() - amount);
-            if(isDead()) {
-                this.map.removeEntity(this);
+            if(this.isDead()) {
+                this.map.removeMapObject(this);
                 return true;
             }
             else {
@@ -78,12 +68,14 @@ public abstract class LivingObject : MapObject {
         return this.isDead();
     }
 
+    [ServerSideOnly]
     public override void readFromNbt(NbtCompound tag) {
         base.readFromNbt(tag);
 
         this.currentHealth = tag.getInt("health");
     }
 
+    [ServerSideOnly]
     public override void writeToNbt(NbtCompound tag) {
         base.writeToNbt(tag);
 
@@ -102,12 +94,38 @@ public abstract class LivingObject : MapObject {
     /// <summary>
     /// Called on the server side when this object is destroyed.
     /// </summary>
+    [ServerSideOnly]
     public virtual void onDeath() { }
 
+    public virtual bool shouldHealthbarBeShown() {
+        return true;
+    }
+
+    [ClientSideOnly]
     private void hookOnChangeHealth(int newHealth) {
         this.currentHealth = newHealth;
-        if(this.healthBar != null) {
+
+        if(this.shouldShowHealth && this.shouldHealthbarBeShown()) {
+            if(this.healthBar == null) {
+                this.healthBar = ProgressBar.instantiateBar(
+                    this.gameObject,
+                    this.getHealthBarHeight(),
+                    this.getMaxHealth(),
+                    (curentValue, maxValue) => {
+                        if(curentValue < (maxValue / 4)) {
+                            return Colors.red;
+                        }
+                        else if(curentValue < (maxValue / 2)) {
+                            return Colors.orange;
+                        }
+                        else {
+                            return Colors.lime;
+                        }
+                    });
+            }
+
             this.healthBar.updateProgressBar(newHealth);
+            this.healthBar.setVisible(this.shouldHealthbarBeShown());
         }
     }
 }

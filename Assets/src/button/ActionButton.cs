@@ -20,7 +20,7 @@ public class ActionButton {
     public static readonly ActionButton builderBuild = new ActionButtonParent("Build", 1,
         new ActionButtonBuild("Camp", Registry.buildingCamp),
         new ActionButtonBuild("Producer", Registry.buildingProducer),
-        new ActionButtonBuild("Workshop", Registry.buildingWorkshop),
+        //new ActionButtonBuild("Workshop", Registry.buildingWorkshop),
         new ActionButtonBuild("Training House", Registry.buildingTrainingHouse),
         new ActionButtonBuild("Storeroom", Registry.buildingStoreroom),
         new ActionButtonBuild("Tower", Registry.buildingCannon),
@@ -40,16 +40,15 @@ public class ActionButton {
         })
         .setValidForActionFunction((team, entity) => {
             if(entity.getTeam() == team && entity is BuildingBase) {
-                BuildingBase b = (BuildingBase)entity;
-                return true;
-                if(!b.isConstructing() && b.getHealth() < b.getMaxHealth()) {
+                BuildingBase building = (BuildingBase)entity;
+                if(!building.isConstructing() && building.getHealth() < building.getMaxHealth()) {
                     return true;
                 }
             }
             return false;
         })
         .setEntitySelecterFunction((list, clickedEntity) => {
-            return Util.closestToPoint(clickedEntity.getPos(), list, (entity) => { return ((UnitBase)entity).getTask().cancelable(); });
+            return Util.closestToPoint(clickedEntity.getPos(), list, (entity) => { return ((UnitBase)entity).isTaskCancelable(); });
         });
 
     // Fighting troop attacks.
@@ -71,6 +70,13 @@ public class ActionButton {
         });
 
     // Buildings (16-23)
+    public static readonly ActionButton buildingProducerCollect = new ActionButton("Collect", 16)
+        .setMainActionFunction((building) => {
+            BuildingResourceHolder holder = (BuildingResourceHolder)building;
+            holder.map.increaceResources(holder.getTeam(), holder.getHeldResources());
+            holder.setHeldResources(0);
+        });
+
     public static readonly ActionButton train = new ActionButtonParent("Train", 17,
         new ActionButtonTrain(Registry.unitSoldier),
         new ActionButtonTrain(Registry.unitArcher),
@@ -226,5 +232,9 @@ public class ActionButton {
         }
 
         return candidates;
+    }
+
+    public static int operator |(int mask, ActionButton actionButton) {
+        return mask | actionButton.getMask();
     }
 }

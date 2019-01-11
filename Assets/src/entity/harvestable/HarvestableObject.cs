@@ -3,8 +3,8 @@ using UnityEngine;
 
 public abstract class HarvestableObject : LivingObject {
 
-    public static readonly Predicate<MapObject> predicateIsHarvestable = (MapObject obj) => { return obj is HarvestableObject; };
-
+    /// <summary> The radius of this object, computed at startup and saved. </summary>
+    [SerializeField]
     private float sizeRadius;
 
     public override void onStart() {
@@ -43,7 +43,8 @@ public abstract class HarvestableObject : LivingObject {
     public virtual bool harvest(UnitBuilder builder) {
         int remainingSpace = Constants.BUILDER_MAX_CARRY - builder.getHeldResources();
         int amountToHarvest = Mathf.Min(Constants.BUILDER_COLLECT_PER_STRIKE, remainingSpace);
-        builder.increaseResources(amountToHarvest);
+        //builder.increaseResources(amountToHarvest);
+        this.map.increaceResources(builder.getTeam(), amountToHarvest);
 
         return this.damage(builder, amountToHarvest);
     }
@@ -59,5 +60,9 @@ public abstract class HarvestableObject : LivingObject {
 
     public override int getMaxHealth() {
         return this.getTotalResourceYield();
+    }
+
+    public override bool shouldHealthbarBeShown() {
+        return this.getHealth() < this.getMaxHealth();
     }
 }

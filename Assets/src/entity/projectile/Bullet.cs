@@ -35,4 +35,8 @@ public class Bullet : MapObject {
             be.transform.parent = hitObject.transform;
         }
     }
+
+    public override string getDisplayName() {
+        return "Bullet";
+    }
 }

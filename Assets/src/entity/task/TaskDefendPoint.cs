@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using fNbt;
+using UnityEngine;
 
 public class TaskDefendPoint : TaskAttackNearby {
 
@@ -39,5 +40,17 @@ public class TaskDefendPoint : TaskAttackNearby {
 
     private bool withinArea() {
         return Vector2.Distance(defendPoint, target.getPos()) < Constants.AI_FIGHTING_DEFEND_RANGE;
+    }
+
+    public override void readFromNbt(NbtCompound tag) {
+        base.readFromNbt(tag);
+
+        this.defendPoint = tag.getVector3("defendPoint");
+    }
+
+    public override void writeToNbt(NbtCompound tag) {
+        base.writeToNbt(tag);
+
+        tag.setTag("defendPoint", this.defendPoint);
     }
 }

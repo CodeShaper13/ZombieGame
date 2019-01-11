@@ -40,7 +40,7 @@ public class BuildingTower : BuildingBase {
         base.readFromNbt(tag);
 
         this.fireCooldown = tag.getFloat("fireCooldown");
-        MapObject obj = this.map.findMapObjectFromGuid(tag.getGuid("targetGuid"));
+        MapObject obj = this.map.findMapObjectFromGuid<MapObject>(tag.getGuid("targetGuid"));
         if(obj is UnitBase) {
             this.target = (UnitBase)obj;
         }
@@ -53,7 +53,9 @@ public class BuildingTower : BuildingBase {
         base.writeToNbt(tag);
 
         tag.setTag("fireCooldown", this.fireCooldown);
-        tag.setTag("targetGuid", this.target.getGuid());
+        if(this.target != null) {
+            tag.setTag("targetGuid", this.target.getGuid());
+        }
     }
 
     /// <summary>

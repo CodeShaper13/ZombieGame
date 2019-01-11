@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class MessageRemoveEntity : AbstractMessage<NetHandlerServer> {
+public class MessageRemoveEntity : AbstractMessageServer {
 
     public readonly GameObject gameObj;
 
@@ -10,7 +10,7 @@ public class MessageRemoveEntity : AbstractMessage<NetHandlerServer> {
         this.gameObj = mapObj.gameObject;
     }
 
-    public override void processMessage(NetHandlerServer handler) {
+    public override void processMessage(ConnectedPlayer sender, NetHandlerServer handler) {
         handler.removeEntity(this);
     }
 

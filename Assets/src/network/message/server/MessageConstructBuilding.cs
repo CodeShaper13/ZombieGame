@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class MessageConstructBuilding : AbstractMessage<NetHandlerServer> {
+public class MessageConstructBuilding : AbstractMessageServer {
 
     public int entityId;
     public Vector3 position;
@@ -22,7 +22,7 @@ public class MessageConstructBuilding : AbstractMessage<NetHandlerServer> {
         return 1006;
     }
 
-    public override void processMessage(NetHandlerServer handler) {
+    public override void processMessage(ConnectedPlayer sender, NetHandlerServer handler) {
         handler.constructBuilding(this);
     }
 

@@ -34,6 +34,6 @@ public class BuildingFlag : BuildingBase {
     }
 
     public override BuildingData getData() {
-        return Constants.BD_CAMP;
+        return Constants.BD_FLAG;
     }
 }

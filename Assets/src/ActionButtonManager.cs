@@ -8,28 +8,28 @@ public class ActionButtonManager : MonoBehaviour {
     /// The maximum number of buttons that can be shown at once.  If any more 
     /// are tried to be shown, there will be problems.
     /// </summary>
-    private const int MAX_BUTTONS = 8;
+    private const int MAX_BUTTONS = 10;
 
-    public GameObject buttonPrefab;
+    [SerializeField]
+    private GameObject buttonPrefab;
 
-    private Player cameraMover;
+    private Transform subButtonCanvas;
+
+    private Player player;
     private ButtonWrapper[] buttonWrappers;
     private ButtonWrapper[] subButtonWrappers;
-    /// <summary> If true, the popup buttons are shown. </summary>
-    private bool popupShown = false;
-    private Transform subButtonCanvas;
     /// <summary> A list of the current buttons that are shown on the side of the screen.  This does NOT contain the sub buttons. </summary>
     private List<ActionButton> currentlyShownButtons;
     /// <summary> Saves what button was clicked when dealing with sub buttons. </summary>
-    private int selectedMainButtonIndex = -1;
-    /// <summary> Stores if the buttons should be forced to be disabled. </summary>
+    private ActionButton selectedMainButton;
+    /// <summary> Stores if the buttons should be forced to be disabled (not visible).  The BuildOutline enables this. </summary>
     private bool forceDisabled;
 
-    public ActionButtonRequireClick delayedButtonRef;
+    private ActionButtonRequireClick delayedButtonRef;
     private List<SidedEntity> selectedOutlineObjects;
 
     public void init() {
-        this.cameraMover = this.GetComponentInParent<Player>();
+        this.player = this.GetComponentInParent<Player>();
 
         this.subButtonCanvas = this.transform.GetChild(0);
         this.currentlyShownButtons = new List<ActionButton>();
@@ -40,18 +40,21 @@ public class ActionButtonManager : MonoBehaviour {
         this.selectedOutlineObjects = new List<SidedEntity>();
     }
 
-    private void Update() {
+    private void LateUpdate() {
+        this.updateSideButtons();
+
         // Update if the buttons are interactable or not.
         if(!this.forceDisabled) {
             for(int i = 0; i < this.currentlyShownButtons.Count; i++) {
                 ActionButton actionButton = this.currentlyShownButtons[i];
-                this.func03(actionButton, this.buttonWrappers[i]);
+                this.checkButtonInteractability(actionButton, this.buttonWrappers[i]);
+                this.buttonWrappers[i].setInteractable(this.selectedMainButton == null || this.selectedMainButton == actionButton);
 
                 // Preform the check for child buttons.
-                if(this.popupShown && i == this.selectedMainButtonIndex) {
+                if(this.selectedMainButton == actionButton) {
                     ActionButton[] subButtons = ((ActionButtonParent)actionButton).getChildButtons();
                     for(int j = 0; j < subButtons.Length; j++) {
-                        this.func03(subButtons[j], this.subButtonWrappers[j]);
+                        this.checkButtonInteractability(subButtons[j], this.subButtonWrappers[j]);
                     }
                 }
             }
@@ -61,33 +64,38 @@ public class ActionButtonManager : MonoBehaviour {
     /// <summary>
     /// Shows the correct buttons on the side of the screen based on the selected units or building.
     /// </summary>
-    public void updateSideButtons() {
-        int mask = this.cameraMover.getSelected().getMask();
+    private void updateSideButtons() {
+        int selectedMask = this.player.getSelected().getMask();
         this.currentlyShownButtons.Clear();
 
+        // Iterate through all of the action buttons, adding the ones to a list that need to be displayed.
         for(int i = 0; i < ActionButton.BUTTON_LIST.Length; i++) {
             ActionButton button = ActionButton.BUTTON_LIST[i];
-            if(button != null && ((mask >> i) & 1) == 1) {
+            if(button != null && ((selectedMask >> i) & 1) == 1) {
                 this.currentlyShownButtons.Add(button);
             }
         }
 
+        // Set the button text on the screen.
         for(int i = 0; i < MAX_BUTTONS; i++) {
             if(i < this.currentlyShownButtons.Count) {
-                ActionButton ab = this.currentlyShownButtons[i];
-                this.buttonWrappers[i].setText(ab.getText());
-                if(!this.forceDisabled) {
-                    this.buttonWrappers[i].setVisible(true);
-                }
+                ActionButton actionButton = this.currentlyShownButtons[i];
+                this.buttonWrappers[i].setText(actionButton.getText());
+                this.buttonWrappers[i].setVisible(!this.forceDisabled);
             }
             else {
                 this.buttonWrappers[i].setVisible(false);
             }
         }
+
+        // Hide the sub button's if their parent button is no longer displayed.
+        if(!this.currentlyShownButtons.Contains(this.selectedMainButton)) {
+            this.closePopupButtons();
+        }
     }
 
     /// <summary>
-    /// Closes the popup buttons and makes it so you can interacted with the main buttons.
+    /// Closes the popup buttons and makes it so you can interacted with the main buttons again.
     /// </summary>
     public void closePopupButtons() {
         for(int i = 0; i < MAX_BUTTONS; i++) {
@@ -98,7 +106,7 @@ public class ActionButtonManager : MonoBehaviour {
             this.buttonWrappers[i].setInteractable(true);
         }
 
-        this.popupShown = false;
+        this.selectedMainButton = null;
     }
 
     /// <summary>
@@ -112,6 +120,10 @@ public class ActionButtonManager : MonoBehaviour {
         foreach(ButtonWrapper bw in this.buttonWrappers) {
             bw.setInteractable(!this.forceDisabled);
         }
+    }
+
+    private bool isPoupShown() {
+        return this.selectedMainButton != null;
     }
 
     /// <summary>
@@ -128,13 +140,13 @@ public class ActionButtonManager : MonoBehaviour {
 
                 // Disable all the main buttons except for the selected one.
                 for(int i = 0; i < MAX_BUTTONS; i++) {
-                    this.buttonWrappers[i].setInteractable(this.popupShown || i == index);
+                    this.buttonWrappers[i].setInteractable(this.isPoupShown() || i == index);
                 }
 
                 // Set the sub button text and set them to be active.
                 ActionButton[] subButtons = ((ActionButtonParent)clickedButton).getChildButtons();
                 for(int i = 0; i < MAX_BUTTONS; i++) {
-                    if(i < subButtons.Length && !this.popupShown) {
+                    if(i < subButtons.Length && !this.isPoupShown()) {
                         this.subButtonWrappers[i].setText(subButtons[i].getText());
                         this.subButtonWrappers[i].setVisible(true);
                     }
@@ -144,10 +156,13 @@ public class ActionButtonManager : MonoBehaviour {
                 }
 
                 // Shift the sub button canvas up or down.
-                this.subButtonCanvas.position = new Vector3(this.subButtonCanvas.position.x, this.buttonWrappers[index].button.transform.position.y + 24, 0);
-                this.popupShown = !this.popupShown;
+                this.subButtonCanvas.position = new Vector3(this.subButtonCanvas.position.x, this.buttonWrappers[index].button.transform.position.y + 20, 0);
 
-                this.selectedMainButtonIndex = index;
+                if(this.selectedMainButton == null) {
+                    this.selectedMainButton = clickedButton;
+                } else {
+                    this.selectedMainButton = null;
+                }
             }
             else {
                 // Clicked on a normal button.
@@ -156,7 +171,8 @@ public class ActionButtonManager : MonoBehaviour {
         }
         else {
             // If a sub button was clicked...
-            ActionButton[] subButtons = ((ActionButtonParent)this.currentlyShownButtons[this.selectedMainButtonIndex]).getChildButtons();
+            ActionButton[] subButtons = ((ActionButtonParent)this.selectedMainButton).getChildButtons();
+
             this.closePopupButtons();
             this.callFunctionOnSelected(subButtons[index]);
         }
@@ -188,8 +204,8 @@ public class ActionButtonManager : MonoBehaviour {
             ActionButtonRequireClick btnRequireClick = (ActionButtonRequireClick)actionButton;
 
             // Iterate through all objects and outline the ones that are valid selections.
-            foreach(SidedEntity entity in Map.instance.findMapObjects(null)) {
-                if(btnRequireClick.isValidForAction(this.cameraMover.getTeam(), entity)) {
+            foreach(SidedEntity entity in Map.instance.findMapObjects(EntitySelecter.isBuilding)) {
+                if(btnRequireClick.isValidForAction(this.player.getTeam(), entity)) {
                     entity.setOutlineVisibility(true, EnumOutlineParam.ACTION_OPTION);
                     this.selectedOutlineObjects.Add(entity);
                 }
@@ -205,7 +221,7 @@ public class ActionButtonManager : MonoBehaviour {
         }
         else {
             // Do something right away.
-            this.cameraMover.getSelected().callFunctionOn(actionButton);
+            this.player.getSelected().callFunctionOn(actionButton);
         }
     }
 
@@ -231,19 +247,23 @@ public class ActionButtonManager : MonoBehaviour {
         return buttonList;
     }
 
-    private void func03(ActionButton actionBtn, ButtonWrapper btnWrapper) {
-        if(this.cameraMover.selectedBuilding.isSelected()) {
-            btnWrapper.setInteractable(!actionBtn.shouldDisable(this.cameraMover.selectedBuilding.getBuilding()));
+    private void checkButtonInteractability(ActionButton actionBtn, ButtonWrapper btnWrapper) {
+        if(this.player.selectedBuilding.isSelected()) {
+            btnWrapper.setInteractable(!actionBtn.shouldDisable(this.player.selectedBuilding.getBuilding()));
         }
         else {
             bool notInteractable = true;
             int buttonMask = actionBtn.getMask();
-            foreach(UnitBase entity in this.cameraMover.selectedParty.getAllUnits()) {
+            foreach(UnitBase entity in this.player.selectedParty.getAllUnits()) {
                 if((entity.getButtonMask() & buttonMask) != 0) {
-                    notInteractable &= (actionBtn.shouldDisable(entity) || !entity.getTask().cancelable());
+                    notInteractable &= actionBtn.shouldDisable(entity) || !entity.isTaskCancelable();
                 }
             }
             btnWrapper.setInteractable(!notInteractable);
         }
+    }
+
+    public ActionButtonRequireClick getDelayedActionButton() { //TODO rename.
+        return this.delayedButtonRef;
     }
 }

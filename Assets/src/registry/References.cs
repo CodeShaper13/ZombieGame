@@ -13,14 +13,15 @@ public class References : MonoBehaviour {
 
     private List<GameObject> allPrefabs = new List<GameObject>();
 
-    [Header("")] // Add an empty line.
-
-    // Objects that are registered:
+    [Header("Units")]
     public GameObject prefabUnitSoldier;
     public GameObject prefabUnitArcher;
     public GameObject prefabUnitBuilder;
+
+    [Header("Projectiles")]
     public GameObject prefabProjectileArrow;
 
+    [Header("Buildings")]
     public GameObject prefabBuildingCamp;
     public GameObject prefabBuildingCannon;
     public GameObject prefabBuildingFlag;
@@ -30,29 +31,40 @@ public class References : MonoBehaviour {
     public GameObject prefabBuildingWorkshop;
     public GameObject prefabBuildingWall;
 
+    [Header("Harvestables")]
     public GameObject prefabHarvestableTree;
+    public GameObject prefabHarvestableRock;
 
-    // Other:
-    public GameObject prefabHealthBarEffect;
-
-    // UI: (Not registered)
+    [Header("UI")] // (Not registered)
     public GameObject prefabPlaceObjectButton;
 
-    // Unused:
-    public GameObject prefabEnemy;
-
+    [Header("Text")]
     public TextAsset maleNames;
     public TextAsset femaleNames;
     public TextAsset lastNames;
     public TextAsset constants;
 
+    [Header("Player")] // (Not registered)
+    public GameObject prefabUnitDestinationEffect;
+    public GameObject prefabAttackTargetEffect;
+
+    [Header("")]
+
     public GameObject mapPrefab;
+
+    // Other:
+    public GameObject prefabHealthBarEffect;
+
+    [Header("GUI Objects")]
+    public GuiBase guiPausedObject;
+    public GuiBase guiUnitStatsObject;
 
     private void Awake() {
         References.list = this;
 
         this.add(this.prefabUnitSoldier);
         this.add(this.prefabUnitArcher);
+        this.add(this.prefabUnitBuilder);
 
         this.add(this.prefabProjectileArrow);
 
@@ -66,15 +78,14 @@ public class References : MonoBehaviour {
         this.add(this.prefabBuildingWall);
 
         this.add(this.prefabHarvestableTree);
+        this.add(this.prefabHarvestableRock);
 
         this.add(this.prefabHealthBarEffect);
-
-        this.add(this.prefabEnemy);
 
         this.add(this.mapPrefab);
     }
 
-    public void func(NetworkManager networkManager) {
+    public void registerPrefabsToNetworkManager(NetworkManager networkManager) {
         foreach (GameObject prefab in this.allPrefabs) {
             networkManager.spawnPrefabs.Add(prefab);
         }

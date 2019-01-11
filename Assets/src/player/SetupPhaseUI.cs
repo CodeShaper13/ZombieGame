@@ -14,15 +14,15 @@ public class SetupPhaseUI : MonoBehaviour {
     // Use this for initialization
     private void Awake() {
         PlaceableObject[] objs = new PlaceableObject[] {
-            new PlaceableObject("Soldier", Registry.unitSoldier, 10),
-            new PlaceableObject("Archer", Registry.unitArcher, 5),
-            new PlaceableObject("Tower", Registry.buildingCannon, 2),
-            new PlaceableObject("Flag", Registry.buildingFlag, 4),
-            new PlaceableObject("Builder", Registry.unitBuilder, 10),
-            null,
-            null,
-            null,
-            null
+            new PlaceableObject(Registry.unitBuilder),
+            new PlaceableObject(Registry.unitArcher),
+            new PlaceableObject(Registry.buildingCamp),
+            new PlaceableObject(Registry.buildingFlag),
+            new PlaceableObject(Registry.buildingProducer),
+            new PlaceableObject(Registry.buildingStoreroom),
+            new PlaceableObject(Registry.buildingCannon),
+            new PlaceableObject(Registry.buildingTrainingHouse),
+            new PlaceableObject(Registry.buildingWorkshop)
         };
 
         // Make the buttons.
@@ -48,7 +48,8 @@ public class SetupPhaseUI : MonoBehaviour {
     private void Update() {
         foreach(UIPlaceObjectButton obj in this.buttonList) {
             if(obj.placeableObj != null) {
-                obj.setText(obj.placeableObj.displayText + " x" + obj.placeableObj.getCount());
+                int i = obj.placeableObj.getCount();
+                obj.setText(obj.placeableObj.displayText + (i == -1 ? string.Empty :" x" + obj.placeableObj.getCount()));
             }
         }
     }

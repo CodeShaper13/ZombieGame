@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class MessageSetObjectPostion : AbstractMessage<NetHandlerServer> {
+public class MessageSetObjectPostion : AbstractMessageServer {
 
     public readonly GameObject target;
     public readonly Vector3 newPosition;
@@ -16,7 +16,7 @@ public class MessageSetObjectPostion : AbstractMessage<NetHandlerServer> {
         return 1003;
     }
 
-    public override void processMessage(NetHandlerServer handler) {
+    public override void processMessage(ConnectedPlayer sender, NetHandlerServer handler) {
         handler.moveObject(this);
     }
 }

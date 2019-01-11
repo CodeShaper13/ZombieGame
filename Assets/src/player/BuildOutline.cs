@@ -5,7 +5,6 @@ public class BuildOutline : MonoBehaviour {
 
     private const float HEIGHT = 0.1f;
 
-    private Map map;
     private Player player;
 
     [SerializeField]
@@ -18,9 +17,8 @@ public class BuildOutline : MonoBehaviour {
     private RegisteredObject buildingToPlace;
     private List<UnitBuilder> cachedBuilders;
 
-    public void init(Player player, Map map) {
+    public void init(Player player) {
         this.player = player;
-        this.map = map;
 
         this.cachedBuilders = new List<UnitBuilder>();
         this.meshRenderer = this.GetComponent<MeshRenderer>();
@@ -32,6 +30,11 @@ public class BuildOutline : MonoBehaviour {
     }
 
     private void Update() {
+        this.moveSquare();
+        this.updateColor();
+    }      
+
+    private void moveSquare() {
         RaycastHit hit;
         Vector3 correctedHit = Vector3.zero;
         if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit)) {
@@ -41,8 +44,9 @@ public class BuildOutline : MonoBehaviour {
                 Mathf.Round(hit.point.z));
             this.transform.position = correctedHit;
         }
+    }
 
-        // Update Color.
+    private void updateColor() {
         this.meshRenderer.material = this.isSpaceFree() ? this.validMaterial : this.invalidMaterial;
     }
 
@@ -58,7 +62,7 @@ public class BuildOutline : MonoBehaviour {
         if(Input.GetMouseButtonUp(0) && this.isSpaceFree()) {
             // Pick the builder to use.
             UnitBuilder builder = Util.closestToPoint(this.transform.position, this.cachedBuilders, (entity) => {
-                return entity.getTask().cancelable();
+                return entity.isTaskCancelable();
             });
 
             if(builder != null) {
@@ -111,6 +115,6 @@ public class BuildOutline : MonoBehaviour {
     }
 
     private bool isSpaceFree() {
-        return !Physics.CheckBox(this.transform.position, this.transform.lossyScale / 2, this.transform.rotation, ~Layers.GEOMETRY);
+        return !Physics.CheckBox(this.transform.position, this.transform.lossyScale / 2, this.transform.rotation, Layers.GEOMETRY);
     }
 }

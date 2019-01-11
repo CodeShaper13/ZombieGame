@@ -44,6 +44,7 @@ GameObject:
   - component: {fileID: 114646368023303094}
   - component: {fileID: 208223955624598462}
   - component: {fileID: 135361061346302312}
+  - component: {fileID: 114209497802926962}
   m_Layer: 10
   m_Name: Building_Storeroom
   m_TagString: Untagged
@@ -174,6 +175,27 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &114209497802926962
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1623725686894320}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1768714887, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_TransformSyncMode: 1
+  m_SendInterval: 0.1
+  m_SyncRotationAxis: 2
+  m_RotationSyncCompression: 0
+  m_SyncSpin: 0
+  m_MovementTheshold: 0.001
+  m_VelocityThreshold: 0.0001
+  m_SnapThreshold: 5
+  m_InterpolateRotation: 1
+  m_InterpolateMovement: 1
 --- !u!114 &114272326542088830
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -234,7 +256,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   map: {fileID: 0}
   immutable: 0
-  domeRenderer: {fileID: 0}
+  heldResources: 0
+  domeRenderer: {fileID: 23785919220067542}
 --- !u!135 &135361061346302312
 SphereCollider:
   m_ObjectHideFlags: 1
@@ -256,7 +279,7 @@ NavMeshObstacle:
   m_Enabled: 1
   serializedVersion: 3
   m_Shape: 1
-  m_Extents: {x: 0.5, y: 0.5, z: 0.5}
+  m_Extents: {x: 0.45, y: 0.5, z: 0.45}
   m_MoveThreshold: 0.1
   m_Carve: 1
   m_CarveOnlyStationary: 1

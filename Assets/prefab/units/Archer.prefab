@@ -42,7 +42,6 @@ GameObject:
   - component: {fileID: 114106563312625878}
   - component: {fileID: 114357759088275104}
   - component: {fileID: 195379191797418870}
-  - component: {fileID: 114481449298945882}
   - component: {fileID: 143426169852148322}
   - component: {fileID: 114489297619028206}
   - component: {fileID: 114389665816010670}
@@ -391,25 +390,6 @@ MonoBehaviour:
   eraseRenderer: 0
   originalLayer: 0
   originalMaterials: []
---- !u!114 &114481449298945882
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1885916268208600}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1267208747, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Target: {fileID: 4672137266970148}
-  m_ChildIndex: 0
-  m_SendInterval: 0.1
-  m_SyncRotationAxis: 2
-  m_RotationSyncCompression: 0
-  m_MovementThreshold: 0.001
-  m_InterpolateRotation: 0.5
-  m_InterpolateMovement: 0.5
 --- !u!114 &114489297619028206
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -423,7 +403,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   map: {fileID: 0}
   immutable: 0
-  head: {fileID: 4672137266970148}
 --- !u!136 &136772812086632886
 CapsuleCollider:
   m_ObjectHideFlags: 1

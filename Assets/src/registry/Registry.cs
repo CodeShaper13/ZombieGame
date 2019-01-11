@@ -12,6 +12,7 @@ public class Registry {
     public static RegisteredObject projectileArrow;
 
     public static RegisteredObject harvestableTree;
+    public static RegisteredObject harvestableRock;
 
     public static RegisteredObject buildingCamp;
     public static RegisteredObject buildingCannon;
@@ -75,6 +76,7 @@ public class Registry {
 
         // Harvestable ids are 64 - 95.
         Registry.harvestableTree = register(64, References.list.prefabHarvestableTree);
+        Registry.harvestableRock = register(65, References.list.prefabHarvestableRock);
 
         // Projectile ids are 96-127.
         Registry.projectileArrow = register(97, References.list.prefabProjectileArrow);

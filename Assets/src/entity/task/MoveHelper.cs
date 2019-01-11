@@ -26,7 +26,7 @@ public class MoveHelper : IDrawDebug {
     }
 
     public void setDestination(LivingObject entity) {
-        this.setDestination(entity.getPos(), entity.getSizeRadius());
+        this.setDestination(entity.getPos(), entity.getSizeRadius() - this.unit.getSizeRadius());
     }
 
     public void setDestination(Vector3 pos, float stopingDistance = -1) {
@@ -58,6 +58,6 @@ public class MoveHelper : IDrawDebug {
     }
 
     public void drawDebug() {
-        GLDebug.DrawLine(agent.transform.position.setY(0.5f), agent.destination.setY(0.5f), Color.cyan);
+        GLDebug.DrawLine(agent.transform.position.setY(0.5f), agent.destination.setY(0.5f), Colors.magenta);
     }
 }

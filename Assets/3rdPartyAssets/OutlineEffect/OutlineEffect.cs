@@ -248,6 +248,7 @@ namespace cakeslice
             {
                 oL.enabled = false;
                 oL.enabled = true;
+                oL.enabled = false;   // EDITED  <--------------------------------------------------
             }
         }
 

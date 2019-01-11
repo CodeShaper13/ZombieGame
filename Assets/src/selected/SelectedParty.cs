@@ -68,12 +68,16 @@ public class SelectedParty : SelectedDisplayerBase {
     }
 
     /// <summary>
-    /// Moves all members of the party to the passed destination.
+    /// Moves all members of the party to the passed destination.  Returns true if any units were moved.
     /// </summary>
-    public void moveAllTo(Vector3 point) {
+    public bool moveAllTo(Vector3 point) {
+        bool flag = false;
+        int partySize = this.unitsInParty.Count;
         foreach(UnitBase unit in this.unitsInParty) {
-            this.player.sendMessageToServer(new MessageSetUnitDestination(unit, point));
+            this.player.sendMessageToServer(new MessageSetUnitDestination(unit, point, partySize));
+            flag = true;
         }
+        return flag;
     }
 
     /// <summary>
@@ -107,10 +111,13 @@ public class SelectedParty : SelectedDisplayerBase {
     /// </summary>
     public void remove(UnitBase unit) {
         int index = this.unitsInParty.IndexOf(unit);
-        if(index != -1) {
+        if(index != -1) { // Make sure the Unit is actually in the party.
             this.partyButtons[index].setUnit(null);
-            unit.setOutlineVisibility(false, EnumOutlineParam.SELECTED);
             this.unitsInParty.RemoveAt(index);
+
+            if(Util.isAlive(unit)) {
+                unit.setOutlineVisibility(false, EnumOutlineParam.SELECTED);
+            }
 
             // Slide the units down so there isn't an empty spot.
             for(int i = index; i < PARTY_SIZE; i++) {
@@ -130,7 +137,7 @@ public class SelectedParty : SelectedDisplayerBase {
 
     /// <summary>
     /// Tries to add a Unit to the party.
-    /// Returns false if the party is full and the Unit can't be added.
+    /// Returns false if the party is full and the Unit can't be added or if the Unit is already in the party.
     /// </summary>
     public bool tryAdd(UnitBase unit) {
         if(!this.isFull() && !this.unitsInParty.Contains(unit)) {
@@ -157,7 +164,6 @@ public class SelectedParty : SelectedDisplayerBase {
     public void onButtonRightClick(int index) {
         UnitBase unit = this.getUnit(index);
         this.remove(unit);
-        this.player.actionButtons.updateSideButtons();
     }
 
     /// <summary>

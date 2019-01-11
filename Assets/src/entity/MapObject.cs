@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 [DisallowMultipleComponent]
-public abstract class MapObject : NetworkBehaviour, IDrawDebug {
+public abstract class MapObject : NetworkBehaviour, IDrawDebug, INbtSerializable {
 
     [HideInInspector]
     public Map map;
@@ -13,38 +13,30 @@ public abstract class MapObject : NetworkBehaviour, IDrawDebug {
     [SerializeField] // Used so it can be set in the inspecter.
     [SyncVar]
     private bool immutable;
-    private Guid guid;
+    public Guid guid;
+
+    public NbtCompound nbtTag;
 
     private void Awake() {
         this.map = Map.instance;
+        //print("MapObject.Awake() was called and Map is (" + this.map + ")");
 
         this.onAwake();
     }
 
     private void Start() {
         this.onStart();
-
-        //if(Main.instance().isSinglePlayerGame) {
-        //    this.onUiInit();
-        //}
-    }
-
-    public override void OnStartServer() {
-        base.OnStartServer();
-
-        this.guid = Guid.NewGuid();
     }
 
     public override void OnStartClient() {
         base.OnStartClient();
 
-        //print("onStartClient");
         if(this.isClient) {
             //print("isClient = true");
         }
         if(!this.isServer) {
-            this.map.mapObjects.Add(this);
-            print("isServer = false");
+            this.map.addMapObject(this);
+            //print("isServer = false");
         }
 
         this.onUiInit();
@@ -64,23 +56,50 @@ public abstract class MapObject : NetworkBehaviour, IDrawDebug {
         }
     }
 
+    private void OnDestroy() {
+        if(!this.isServer) {
+            this.map.mapObjects.Remove(this);
+        }
+    }
+
     /// <summary>
     /// Called when this MapObject is first spawned on both the server and client side.
     /// </summary>
     public virtual void onAwake() { }
 
+    public virtual void onStart() { }
+
+    /// <summary>
+    /// A version of onAwake() that is only called on the server side after onAwake().
+    /// </summary>
+    public virtual void onServerAwake() {
+        //print("serverAwake");
+        this.guid = Guid.NewGuid();
+    }
+
     /// <summary>
     /// Called after onStart() and should be used to initialize any world space UIs
     /// that this MapObject has.
     /// </summary>
-    public virtual void onUiInit() { }
+    public virtual void onUiInit() {
+        //print("onUiInit");
+    }
 
-    public virtual void onStart() { }
-
+    /// <summary>
+    /// Called every frame to update this MapObject ont he server side.  Do not
+    /// use Time.delta time, but instead the deltaTime parameter.
+    /// </summary>
+    [ServerSideOnly]
     public virtual void onUpdate(float deltaTime) { }
 
+    /// <summary>
+    /// Called every frame after onUpdate() to draw debug information on the screen.
+    /// </summary>
     public virtual void drawDebug() { }
 
+    /// <summary>
+    /// Helper method to get the position of this object.
+    /// </summary>
     public Vector3 getPos() {
         return this.transform.position;
     }
@@ -97,6 +116,11 @@ public abstract class MapObject : NetworkBehaviour, IDrawDebug {
     }
 
     /// <summary>
+    /// Returns the display name of this Object.
+    /// </summary>
+    public abstract string getDisplayName();
+
+    /// <summary>
     /// Reads the object from NBT and sets it's state.
     /// </summary>
     public virtual void readFromNbt(NbtCompound tag) {
@@ -106,7 +130,7 @@ public abstract class MapObject : NetworkBehaviour, IDrawDebug {
         this.transform.eulerAngles = tag.getVector3("eulerRotation");
         this.transform.localScale = tag.getVector3("localScale", Vector3.one);
         this.immutable = tag.getBool("isImmutable");
-        this.guid = new Guid(tag.getString("guid"));
+        //this.guid = new Guid(tag.getString("guid"));
     }
 
     /// <summary>

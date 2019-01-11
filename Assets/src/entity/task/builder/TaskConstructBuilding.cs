@@ -1,13 +1,9 @@
 ﻿public class TaskConstructBuilding : TaskRepair {
 
-    public TaskConstructBuilding(UnitBuilder unit, BuildingBase newBuilding) : base(unit, newBuilding, true) {
+    public TaskConstructBuilding(UnitBuilder unit) : base(unit) { }
+
+    public TaskConstructBuilding(UnitBuilder unit, BuildingBase newBuilding) : base(unit, newBuilding) {
         this.building.setConstructing();
-
-        this.unit.unitStats.buildingsBuilt.increase();
-    }
-
-    public override bool cancelable() {
-        return false;
     }
 
     protected override bool shouldContinue() {

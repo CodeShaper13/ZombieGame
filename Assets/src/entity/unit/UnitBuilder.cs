@@ -32,7 +32,6 @@ public class UnitBuilder : UnitBase, IResourceHolder {
 
     public void increaseResources(int amount) {
         this.heldResources += amount;
-        //this.getTeam().increaseResources(amount);
 
         this.unitStats.resourcesCollected.increase(amount);
     }
@@ -57,12 +56,16 @@ public class UnitBuilder : UnitBase, IResourceHolder {
         return this.heldResources < this.getHoldLimit();
     }
 
+    public void setHeldResources(int amount) {
+        this.heldResources = amount;
+    }
+
     public override EntityBaseStats getData() {
         return Constants.ED_BUILDER;
     }
 
     public override int getButtonMask() {
-        return base.getButtonMask() | ActionButton.builderBuild.getMask() | ActionButton.builderHarvestResources.getMask() | ActionButton.builderRepair.getMask();
+        return base.getButtonMask() | ActionButton.builderBuild | ActionButton.builderHarvestResources | ActionButton.builderRepair;
     }
 
     public override float getHealthBarHeight() {

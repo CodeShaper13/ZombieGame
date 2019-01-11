@@ -2,7 +2,7 @@
 
     public TaskIdle(UnitBase unit) : base(unit) { }
 
-    public override bool preform() {
+    public override bool preform(float deltaTime) {
         if (Util.isAlive(this.target)) {
             this.func();
         }

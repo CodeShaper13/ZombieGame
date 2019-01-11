@@ -12,4 +12,5 @@
     public const int BULLET = (1 << 8);
     public const int UNIT = (1 << 9);
     public const int GEOMETRY = (1 << 10);
+    public const int GROUND = 1 << 11;
 }

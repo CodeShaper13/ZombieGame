@@ -1,4 +1,4 @@
-﻿public class MessageChangeGameState : AbstractMessage<NetHandlerClient> {
+﻿public class MessageChangeGameState : AbstractMessageClient {
 
     public EnumGameState newState;
 

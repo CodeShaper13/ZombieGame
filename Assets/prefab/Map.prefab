@@ -55,8 +55,6 @@ MonoBehaviour:
   timer: 0
   gameState: 1
   mapObjects: []
-  mapData: {fileID: 0}
-  allPlayers: []
 --- !u!114 &114920861466885898
 MonoBehaviour:
   m_ObjectHideFlags: 1

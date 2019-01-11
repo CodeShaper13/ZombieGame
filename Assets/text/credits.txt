@@ -3,3 +3,5 @@ _
 
 Special Thanks To:
 Unity Technologies
+
+https://forum.unity.com/threads/easy-curved-line-renderer-free-utility.391219/ Line Renderer

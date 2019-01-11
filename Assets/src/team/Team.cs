@@ -5,10 +5,11 @@ using UnityEngine;
 public class Team {
 
     public static Team NONE = new TeamNone(0);
-    public static Team ORANGE = new Team(1, "orange", new Color(1f, 0.522f, 0.106f));
-    public static Team BLUE = new Team(2, "blue", Color.blue);
-    public static Team GREEN = new Team(3, "green", Color.green);
-    public static Team PURPLE = new Team(4, "purple", new Color(0.40f, 0.07f, 0.54f));
+    public static Team ORANGE = new Team(1, "orange", EnumTeam.ORANGE, new Color(1f, 0.522f, 0.106f));
+    public static Team BLUE = new Team(2, "blue", EnumTeam.BLUE, Color.blue);
+    public static Team GREEN = new Team(3, "green", EnumTeam.GREEN, Color.green);
+    public static Team PURPLE = new Team(4, "purple", EnumTeam.PURPLE, new Color(0.40f, 0.07f, 0.54f));
+    /// <summary> An array of all the teams.  This does NOT include Team.NONE. </summary>
     public static Team[] ALL_TEAMS = new Team[] { NONE, ORANGE, BLUE, GREEN, PURPLE };
 
     public readonly Predicate<MapObject> predicateThisTeam;
@@ -19,14 +20,11 @@ public class Team {
     private readonly Color color;
     private readonly EnumTeam enumTeam;
 
-    [ServerSideOnly]
-    private Transform orginPoint;
-
-    private Team(int teamId, string name, Color color) {
+    private Team(int teamId, string name, EnumTeam enumTeam, Color color) {
         this.teamId = teamId;
         this.teamName = char.ToUpper(name[0]) + name.Substring(1);
         this.color = color;
-        this.enumTeam = (EnumTeam)this.teamId;
+        this.enumTeam = enumTeam;
 
         this.predicateThisTeam = (MapObject obj) => { return obj is SidedEntity && ((SidedEntity)obj).getTeam() == this; };
         this.predicateOtherTeam = (MapObject obj) => { return obj is SidedEntity && ((SidedEntity)obj).getTeam() != this; };
@@ -49,18 +47,6 @@ public class Team {
 
     public int getId() {
         return this.teamId;
-    }
-
-    public void setOrgin(Transform t) {
-        this.orginPoint = t;
-    }
-
-    public Vector3 getOrginPos() {
-        return this.orginPoint == null ? Vector3.zero : this.orginPoint.position;
-    }
-
-    public Quaternion getOrginRotation() {
-        return this.orginPoint == null ? Quaternion.identity : this.orginPoint.rotation;
     }
 
     /// <summary>
@@ -136,6 +122,6 @@ public class Team {
 
     private class TeamNone : Team {
 
-        public TeamNone(int teamId) : base(teamId, "None", Color.white) { }
+        public TeamNone(int teamId) : base(teamId, "None", EnumTeam.NONE, Color.gray) { }
     }
 }

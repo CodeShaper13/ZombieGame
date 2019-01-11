@@ -1,22 +1,32 @@
-﻿using UnityEngine;
+﻿using fNbt;
+using UnityEngine;
 
 public class TaskRepair : TaskBase<UnitBuilder> {
 
-    private const float F_01 = 3f;
+    private const float TIME_SPENT_WHACKING = 1.5f;
 
     protected BuildingBase building;
-    protected bool isConstructing;
 
-    private float timeWhacking = F_01;
+    /// <summary> How much time the builder has left at his current point. </summary>
+    private float timeWhacking = TIME_SPENT_WHACKING;
+    /// <summary> The current point that the builder is walking to/at. </summary>
     private Vector3 whackPoint;
+    /// <summary> Points around the Building that the Builder goes to while whacking it. </summary>
     private Vector3[] points;
 
-    public TaskRepair(UnitBuilder unit, BuildingBase newBuilding) : this(unit, newBuilding, false) { }
+    public TaskRepair(UnitBuilder unit) : base(unit) { }
 
-    protected TaskRepair(UnitBuilder unit, BuildingBase newBuilding, bool isConstructing) : base(unit) {
+    public TaskRepair(UnitBuilder unit, BuildingBase newBuilding) : this(unit) {
+        this.setBuilding(newBuilding);
+
+        this.whackPoint = this.pickWhackPoint();
+        this.moveHelper.setDestination(this.whackPoint);
+    }
+
+    private void setBuilding(BuildingBase newBuilding) {
         this.building = newBuilding;
-        this.isConstructing = isConstructing;
 
+        // Generates the 4 whack points that the Builder goes to.
         Vector3 bPos = this.building.getPos();
         Vector2 footprint = this.building.getFootprintSize() / 2;
         const float f = 0.5f;
@@ -25,23 +35,19 @@ public class TaskRepair : TaskBase<UnitBuilder> {
                 bPos + new Vector3(0, 0, footprint.y + f),
                 bPos + new Vector3(-footprint.x - f, 0, 0),
                 bPos + new Vector3(0, 0, -footprint.y - f) };
-
-        this.whackPoint = this.pickWhackPoint();
-
-        this.moveHelper.setDestination(this.whackPoint);
     }
 
-    public override bool preform() {
+    public override bool preform(float deltaTime) {
         if(Util.isAlive(this.building)) {
             if(this.isNextToWhackPoint()) {
                 this.moveHelper.stop();
                 this.building.increaseConstructed(true);
 
-                this.timeWhacking -= Time.deltaTime;
+                this.timeWhacking -= deltaTime;
                 if(this.timeWhacking <= 0) {
                     // Pick a new point to go to.
                     this.whackPoint = this.pickWhackPoint();
-                    this.timeWhacking = F_01;
+                    this.timeWhacking = TIME_SPENT_WHACKING;
                 }
             }
             else {
@@ -73,6 +79,9 @@ public class TaskRepair : TaskBase<UnitBuilder> {
         return true;
     }
 
+    /// <summary>
+    /// Checks if the builder is next to a whacking point and should stop moving and get to work.
+    /// </summary>
     private bool isNextToWhackPoint() {
         return this.getDistance(this.whackPoint) < 0.25f;
     }
@@ -82,5 +91,27 @@ public class TaskRepair : TaskBase<UnitBuilder> {
     /// </summary>
     private Vector3 pickWhackPoint() {
         return this.points[Random.Range(0, this.points.Length - 1)];
+    }
+
+    public override void readFromNbt(NbtCompound tag) {
+        base.readFromNbt(tag);
+
+        this.timeWhacking = tag.getFloat("timeWhacking");
+        this.whackPoint = tag.getVector3("whackPoint");
+        this.moveHelper.setDestination(this.whackPoint);
+        BuildingBase b = this.unit.map.findMapObjectFromGuid<BuildingBase>(tag.getGuid("building"));
+        if(b != null) {
+            this.setBuilding(b);
+        }
+    }
+
+    public override void writeToNbt(NbtCompound tag) {
+        base.writeToNbt(tag);
+
+        if(this.building != null) {
+            tag.setTag("building", this.building.getGuid());
+        }
+        tag.setTag("timeWhacking", this.timeWhacking);
+        tag.setTag("whackPoint", this.whackPoint);
     }
 }

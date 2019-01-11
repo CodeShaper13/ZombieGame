@@ -13,35 +13,41 @@ public class UnitStats {
     private Characteristic characteristic;
     private EntityBaseStats baseStats;
 
-    public readonly StatFloat distanceWalked;
-    public readonly StatTime timeAlive;
-    public readonly StatInt unitsKilled;
-    public readonly StatInt buildingsDestroyed;
-    public readonly StatInt damageDelt;
-    public readonly StatInt damageTaken;
+    public readonly StatisticFloat distanceWalked;
+    public readonly StatisticTime timeAlive;
+    public readonly StatisticInt unitsKilled;
+    public readonly StatisticInt buildingsDestroyed;
+    public readonly StatisticInt damageDelt;
+    public readonly StatisticInt damageTaken;
 
     // Builder specific
-    public readonly StatInt resourcesCollected;
-    public readonly StatInt buildingsBuilt;
-    public readonly StatInt repairsDone;
+    public readonly StatisticInt resourcesCollected;
+    public readonly StatisticInt buildingsBuilt;
+    public readonly StatisticInt repairsDone;
 
     private UnitStats() {
-        this.distanceWalked = new StatFloat(this, "Distance Walked", "disWalked");
-        this.timeAlive = new StatTime(this, "Time Alive", "timeAlive");
-        this.unitsKilled = new StatInt(this, "Units Killed", "uKills");
-        this.buildingsDestroyed = new StatInt(this, "Buildings Destroyed", "buildingsDestoryed");
-        this.damageDelt = new StatInt(this, "Damage Delt", "damageDelt");
-        this.damageTaken = new StatInt(this, "Damage Taken", "damageTaken");
-        this.resourcesCollected = new StatInt(this, "Resources Collected", "resCollected");
-        this.buildingsBuilt = new StatInt(this, "Buildings Built", "buildingsBuilt");
-        this.repairsDone = new StatInt(this, "Repairs Done", "repairsDone");
+        this.distanceWalked = new StatisticFloat(this, "Distance Walked", "disWalked");
+        this.timeAlive = new StatisticTime(this, "Time Alive", "timeAlive");
+        this.unitsKilled = new StatisticInt(this, "Units Killed", "uKills");
+        this.buildingsDestroyed = new StatisticInt(this, "Buildings Destroyed", "buildingsDestoryed");
+        this.damageDelt = new StatisticInt(this, "Damage Delt", "damageDelt");
+        this.damageTaken = new StatisticInt(this, "Damage Taken", "damageTaken");
+        this.resourcesCollected = new StatisticInt(this, "Resources Collected", "resCollected");
+        this.buildingsBuilt = new StatisticInt(this, "Buildings Built", "buildingsBuilt");
+        this.repairsDone = new StatisticInt(this, "Repairs Done", "repairsDone");
     }
 
     public UnitStats(EntityBaseStats baseStats) : this() {
         this.baseStats = baseStats;
 
-        int easterEggRnd = Random.Range(0, 100000);
-        if(easterEggRnd == 111599) {
+        int easterEggRnd = Random.Range(0, 100000); // 100 thousand
+        if(easterEggRnd == 1) {
+            this.firstName = "Dalton";
+            this.lastName = "Didelot";
+            this.gender = EnumGender.MALE;
+            this.characteristic = Characteristic.a;
+        }
+        else if(easterEggRnd == 111599) {
             this.firstName = "PJ";
             this.lastName = "Didelot";
             this.gender = EnumGender.MALE;
@@ -49,7 +55,7 @@ public class UnitStats {
         }
         else {
             Names.getRandomName(this.gender, out this.firstName, out this.lastName);
-            this.gender = Random.Range(0, 1) == 0 ? EnumGender.MALE : EnumGender.FEMALE;
+            this.gender = EnumGender.MALE; // Random.Range(0, 1) == 0 ? EnumGender.MALE : EnumGender.FEMALE;
             this.characteristic = Characteristic.ALL[Random.Range(0, Characteristic.ALL.Length)];
         }
     }
@@ -90,10 +96,6 @@ public class UnitStats {
         return this.characteristic.getHealth(this.baseStats.baseHealth);
     }
 
-    public float getSpeed() {
-        return this.characteristic.getSpeed(this.baseStats.baseSpeedMultiplyer);
-    }
-
     public int getAttack() {
         return this.characteristic.getAttack(this.baseStats.baseAttack);
     }
@@ -127,7 +129,6 @@ public class UnitStats {
         StringBuilder sb = new StringBuilder();
 
         sb.AppendLine("Health: " + this.getMaxHealth());
-        sb.AppendLine("Speed: " + this.getSpeed());
         sb.AppendLine("Attack: " + this.getAttack());
         sb.AppendLine("Defense: " + this.getDefense());
 

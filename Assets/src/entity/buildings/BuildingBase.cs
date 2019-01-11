@@ -74,6 +74,10 @@ public abstract class BuildingBase : SidedEntity {
 
     public abstract BuildingData getData();
 
+    public override string getDisplayName() {
+        return this.getData().getName();
+    }
+
     public override int getMaxHealth() {
         return this.getData().getMaxHealth();
     }
@@ -83,12 +87,11 @@ public abstract class BuildingBase : SidedEntity {
     /// Returns true if the building was finished on this call.
     /// </summary>
     public bool increaseConstructed(bool deductResources) {
-        this.buildProgress += (Constants.CONSTRUCT_RATE * Time.deltaTime);
+        this.buildProgress += (Constants.BUILDER_CONSTRUCT_RATE * Time.deltaTime);
         this.setHealth((int)this.buildProgress);
 
         if(deductResources && (int)buildProgress > this.getHealth()) {
             this.map.reduceResources(this.getTeam(), 1);
-            //this.getTeam().reduceResources(1);
         }
 
         if((int)this.buildProgress >= this.getMaxHealth()) {

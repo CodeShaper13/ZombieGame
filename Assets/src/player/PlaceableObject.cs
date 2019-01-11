@@ -4,8 +4,8 @@
     public RegisteredObject registeredObject;
     private int count;
 
-    public PlaceableObject(string s, RegisteredObject r, int count) {
-        this.displayText = s;
+    public PlaceableObject(RegisteredObject r, int count = -1) {
+        this.displayText = r.getPrefab().GetComponent<MapObject>().getDisplayName();
         this.registeredObject = r;
         this.count = count;
     }
@@ -15,6 +15,8 @@
     }
 
     public void setCount(int count) {
-        this.count = count;
+        if(this.count != -1) {
+            this.count = count;
+        }
     }
 }

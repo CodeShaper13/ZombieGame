@@ -7,12 +7,12 @@ public class AttackMelee : AttackBase {
     /// <summary>
     /// Returns true if the target is in range.
     /// </summary>
-    public override bool inRangeToAttack(SidedEntity target) {
+    public override bool inRangeToAttack(LivingObject target) {
         float maxDistance = unit.getSizeRadius() + target.getSizeRadius() + 0.5f;
         return Vector3.Distance(unit.getPos(), target.transform.position) <= maxDistance;
     }
 
-    protected override void preformAttack(SidedEntity target) {
+    protected override void preformAttack(LivingObject target) {
         unit.damageTarget(target);
     }
 }

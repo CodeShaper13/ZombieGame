@@ -48,9 +48,18 @@ public class KeyedSettings {
         }
     }
 
-    public void save(string path) {
+    public void save(string path, string fileName) {
         if(this.forceDefaults) {
             return; //Don't save, as we are forcing the code values to be used for this runtime.
+        }
+
+        if(!Directory.Exists(path)) {
+            Directory.CreateDirectory(path);
+        }
+
+        string s1 = path + "/" + fileName;
+        if(!File.Exists(s1)) {
+            File.Create(s1);
         }
 
         StreamWriter writer = new StreamWriter(path, false);
@@ -61,7 +70,20 @@ public class KeyedSettings {
             if(comment != null) {
                 writer.WriteLine("# " + comment);
             }
-            writer.WriteLine(entry.Key + "=" + entry.Value.value.ToString());
+
+            object value = entry.Value.value;
+
+            // Get the prefix.
+            string prefix = "?";
+            if(value is string) {
+                prefix = "S";
+            } else if( value is float) {
+                prefix = "F";
+            } else if(value is bool) {
+                prefix = "B";
+            }
+
+            writer.WriteLine("[" + prefix + "]" + entry.Key + "=" + value.ToString());
         }
         writer.Close();
     }
@@ -81,7 +103,7 @@ public class KeyedSettings {
     public int getInt(string key, int defaultValue, string comment = null) {
         if(!this.forceDefaults) {
             if(this.dict.ContainsKey(key)) {
-                return (int)(float)this.dict[key].value;
+                return (int)this.dict[key].value;
             }
             else {
                 this.dict.Add(key, new SettingEntry(defaultValue, comment));

@@ -1,4 +1,4 @@
-﻿public class MessageShowAnnouncement : AbstractMessage<NetHandlerClient> {
+﻿public class MessageShowAnnouncement : AbstractMessageClient {
 
     public string message;
     public float duration;

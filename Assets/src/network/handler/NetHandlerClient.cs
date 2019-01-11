@@ -1,4 +1,5 @@
-﻿using UnityEngine.Networking;
+﻿using UnityEngine;
+using UnityEngine.Networking;
 
 public class NetHandlerClient : NetHandlerBase {
 
@@ -11,6 +12,7 @@ public class NetHandlerClient : NetHandlerBase {
     protected override void registerHandlers() {
         this.registerMsg<MessageShowAnnouncement>();
         this.registerMsg<MessageChangeGameState>();
+        this.registerMsg<MessageShowStatsGui>();
     }
 
     public void showAnnouncement(MessageShowAnnouncement msg) {
@@ -21,7 +23,13 @@ public class NetHandlerClient : NetHandlerBase {
         Player.localPlayer.setGameState(msg.newState);
     }
 
-    private void registerMsg<T>() where T : AbstractMessage<NetHandlerClient>, new() {
+    public void showStatsGui(MessageShowStatsGui msg) {
+        GuiUnitStats gui = (GuiUnitStats)GuiManager.openGui(GuiManager.unitStats);
+        gui.set(msg);
+        Debug.Log("123");
+    }
+
+    private void registerMsg<T>() where T : AbstractMessageClient, new() {
         NetworkManager.singleton.client.RegisterHandler(new T().getID(), delegate (NetworkMessage netMsg) {
             T msg = netMsg.ReadMessage<T>();
             msg.processMessage(this);

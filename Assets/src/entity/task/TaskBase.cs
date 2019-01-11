@@ -1,4 +1,5 @@
-﻿using System;
+﻿using fNbt;
+using System;
 using UnityEngine;
 
 public abstract class TaskBase<T> : ITask where T : UnitBase {
@@ -11,14 +12,14 @@ public abstract class TaskBase<T> : ITask where T : UnitBase {
 
     public TaskBase(T unit) {
         this.unit = unit;
-        moveHelper = this.unit.moveHelper;
+        this.moveHelper = this.unit.moveHelper;
     }
 
     /// <summary>
     /// Returns the closest enemy object to this unit, or null if there are none in range.
     /// </summary>
     protected T findEntityOfType<T>(float maxDistance) where T : SidedEntity {
-        return findEntityOfType<T>(unit.getFootPos(), maxDistance);
+        return this.findEntityOfType<T>(this.unit.getFootPos(), maxDistance);
     }
 
     /// <summary>
@@ -28,7 +29,7 @@ public abstract class TaskBase<T> : ITask where T : UnitBase {
         SidedEntity obj = null;
         float f = float.PositiveInfinity;
         Predicate<MapObject> predicate = (findEnemies ? unit.getTeam().predicateOtherTeam : unit.getTeam().predicateThisTeam);
-        foreach(SidedEntity s in unit.map.findMapObjects(predicate)) {
+        foreach(SidedEntity s in this.unit.map.findMapObjects(predicate)) {
             if(s is T && !s.isDead()) {
                 float dis = Vector3.Distance(point, s.transform.position);
                 if((dis < f) && (maxDistance == -1 || dis < maxDistance)) {
@@ -44,14 +45,14 @@ public abstract class TaskBase<T> : ITask where T : UnitBase {
     /// Checks if the passed MapObject is within the passed units to this task's unit.
     /// </summary>
     protected bool inRange(MapObject target, float maxDistance) {
-        return getDistance(target) <= maxDistance;
+        return this.getDistance(target) <= maxDistance;
     }
 
     /// <summary>
     /// Returns the distance between this unit and the passed MapObject.
     /// </summary>
     protected float getDistance(MapObject other) {
-        return Vector3.Distance(unit.getFootPos(), other.getPos());
+        return Vector3.Distance(this.unit.getFootPos(), other.getPos());
     }
 
     protected float getDistance(Vector3 point) {
@@ -67,24 +68,18 @@ public abstract class TaskBase<T> : ITask where T : UnitBase {
     //    return b.Intersects(unit.GetComponent<Collider>().bounds);
     //}
 
-    public abstract bool preform();
+    public abstract bool preform(float deltaTime);
 
-    public void onFinish() {
-        // There is no implementation, so there is no need to call super from implementations.
-    }
+    public virtual void writeToNbt(NbtCompound tag) { }
+
+    public virtual void readFromNbt(NbtCompound tag) { }
+
+    public virtual void onFinish() { }
 
     /// <summary>
     /// Called when the unit is damaged.
     /// </summary>
-    public virtual void onDamage(MapObject dealer) {
-        // There is no implementation, so there is no need to call super from implementations.
-    }
+    public virtual void onDamage(MapObject dealer) { }
 
-    public virtual void drawDebug() {
-        // There is no implementation, so there is no need to call super from implementations.
-    }
-
-    public virtual bool cancelable() {
-        return true;
-    }
+    public virtual void drawDebug() { }
 }

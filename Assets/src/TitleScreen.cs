@@ -9,7 +9,6 @@ public class TitleScreen : MonoBehaviour {
 
         if(GUI.Button(new Rect(20, 20, w, h), "Single Player Game")) {
             SceneManager.LoadScene("SinglePlayer");
-            Main.instance().isSinglePlayerGame = true;
         }
         if(GUI.Button(new Rect(20, 120, w, h), "Host Multiplayer Game")) {
             this.func();
@@ -26,7 +25,7 @@ public class TitleScreen : MonoBehaviour {
     }
 
     private void func() {
-        Main.instance().isSinglePlayerGame = false;
         SceneManager.LoadScene("MultiPlayer");
+        print("asd");
     }
 }

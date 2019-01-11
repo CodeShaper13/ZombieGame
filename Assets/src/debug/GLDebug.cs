@@ -125,8 +125,16 @@ public class GLDebug : MonoBehaviour {
         milliseconds = timer.Elapsed.Ticks / 10000f;
     }
 
+    // ADDED <--------------------------------------------------------------------------------------------------------------
+    public static bool shouldDisplayLines() {
+        if(instance == null) {
+            return false;
+        }
+        return instance.displayLines;
+    }
+
     private static void DrawLine(Vector3 start, Vector3 end, Color color, float duration = 0, bool depthTest = false) {
-        if (duration == 0 && !instance.displayLines)
+        if (duration == 0 && !shouldDisplayLines())
             return;
         if (start == end)
             return;

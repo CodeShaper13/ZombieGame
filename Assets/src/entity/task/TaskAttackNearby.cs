@@ -1,15 +1,21 @@
-﻿using UnityEngine;
+﻿using fNbt;
+using UnityEngine;
 
-public class TaskAttackNearby : TaskBase<UnitBase> {
+public class TaskAttackNearby : TaskBase<UnitBase>, ICancelableTask {
 
-    protected SidedEntity target;
+    protected LivingObject target;
 
-    public TaskAttackNearby(UnitBase unit) : base(unit) {
-        this.target = findTarget();
+    public TaskAttackNearby(UnitBase unit, LivingObject attackTarget = null) : base(unit) {
+        if(attackTarget != null) {
+            this.target = attackTarget;
+        }
+        else {
+            this.target = this.findTarget();
+        }
     }
 
-    public override bool preform() {
-        preformAttack();
+    public override bool preform(float deltaTime) {
+        this.preformAttack();
 
         return true;
     }
@@ -49,6 +55,20 @@ public class TaskAttackNearby : TaskBase<UnitBase> {
         }
         else {
             this.moveHelper.setDestination(this.target);
+        }
+    }
+
+    public override void readFromNbt(NbtCompound tag) {
+        base.readFromNbt(tag);
+
+        this.target = this.unit.map.findMapObjectFromGuid<LivingObject>(tag.getGuid("target"));
+    }
+
+    public override void writeToNbt(NbtCompound tag) {
+        base.writeToNbt(tag);
+
+        if(this.target != null) {
+            tag.setTag("target", this.target.getGuid());
         }
     }
 }

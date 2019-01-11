@@ -1,4 +1,5 @@
-﻿using UnityEngine.Networking;
+﻿using UnityEngine;
+using UnityEngine.Networking;
 
 public class ConnectedPlayer {
 
@@ -28,7 +29,7 @@ public class ConnectedPlayer {
     /// <summary>
     /// Sends a message to this player.
     /// </summary>
-    public void sendMessage(AbstractMessage<NetHandlerClient> msg) {
+    public void sendMessage(AbstractMessageClient msg) {
         this.connection.Send(msg.getID(), msg);
     }
 }

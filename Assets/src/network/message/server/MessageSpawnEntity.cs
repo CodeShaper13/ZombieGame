@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class MessageSpawnEntity : AbstractMessage<NetHandlerServer> {
+public class MessageSpawnEntity : AbstractMessageServer {
 
     public readonly int entityId;
     public readonly Vector3 position;
@@ -20,7 +20,7 @@ public class MessageSpawnEntity : AbstractMessage<NetHandlerServer> {
         return Team.getTeamFromId(this.teamId);
     }
 
-    public override void processMessage(NetHandlerServer handler) {
+    public override void processMessage(ConnectedPlayer sender, NetHandlerServer handler) {
         handler.spawnEntity(this);
     }
 

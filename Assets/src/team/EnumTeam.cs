@@ -3,8 +3,8 @@
 /// </summary>
 public enum EnumTeam {
     NONE = 0,
-    GREEN = 1,
-    PURPLE = 2,
-    ORANGE = 3,
-    BLUE = 4,
+    ORANGE = 1,
+    BLUE = 2,
+    GREEN = 3,
+    PURPLE = 4,
 }

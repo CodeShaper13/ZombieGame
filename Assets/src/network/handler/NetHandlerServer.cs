@@ -17,6 +17,8 @@ public class NetHandlerServer : NetHandlerBase {
         this.registerMsg<MessageRunAction>();
         this.registerMsg<MessageSetUnitDestination>();
         this.registerMsg<MessageConstructBuilding>();
+        this.registerMsg<MessageRequestStats>();
+        this.registerMsg<MessageAttackSpecific>();
     }
 
     public void spawnEntity(MessageSpawnEntity msg) {
@@ -24,13 +26,12 @@ public class NetHandlerServer : NetHandlerBase {
             Registry.getObjectFromRegistry(msg.entityId),
             msg.position,
             msg.rotation);
-        Team team = msg.getTeam();
         instructions.getObj().setTeam(msg.getTeam());
         instructions.spawn();
     }
 
     public void removeEntity(MessageRemoveEntity msg) {
-        Map.instance.removeEntity(msg.gameObj.GetComponent<MapObject>());
+        Map.instance.removeMapObject(msg.gameObj.GetComponent<MapObject>());
     }
 
     public void moveObject(MessageSetObjectPostion msg) {
@@ -52,7 +53,7 @@ public class NetHandlerServer : NetHandlerBase {
     }
 
     public void func02(MessageSetUnitDestination msg) {
-        msg.obj.GetComponent<UnitBase>().walkToPoint(msg.destination, 1); // TODO send party size.
+        msg.obj.GetComponent<UnitBase>().walkToPoint(msg.destination, msg.partySize);
     }
 
     public void constructBuilding(MessageConstructBuilding msg) {
@@ -75,17 +76,33 @@ public class NetHandlerServer : NetHandlerBase {
         }
         else {
             newBuilding.setHealth(1);
-            UnitBuilder builder = (UnitBuilder)map.findMapObjectFromGuid(msg.builderGuid);
+            UnitBuilder builder = map.findMapObjectFromGuid<UnitBuilder>(msg.builderGuid);
             builder.setTask(new TaskConstructBuilding(builder, newBuilding));
+            builder.unitStats.buildingsBuilt.increase();
         }
 
         instructions.spawn();
     }
 
-    private void registerMsg<T>() where T : AbstractMessage<NetHandlerServer>, new() {
+    public void requestStats(ConnectedPlayer sender, MessageRequestStats msg) {
+        UnitBase unit = this.map.findMapObjectFromGuid<UnitBase>(msg.unitGuid);
+        if(unit != null) {
+            sender.sendMessage(new MessageShowStatsGui(unit, unit.unitStats));
+        }
+    }
+
+    public void specificAttack(MessageAttackSpecific msg) {
+        UnitBase unit = this.map.findMapObjectFromGuid<UnitBase>(msg.attackerGuid);
+        LivingObject target = this.map.findMapObjectFromGuid<LivingObject>(msg.targetGuid);
+        if(unit != null && target != null) {
+            unit.setTask(new TaskAttackNearby(unit, target));
+        }
+    }
+
+    private void registerMsg<T>() where T : AbstractMessageServer, new() {
         NetworkServer.RegisterHandler(new T().getID(), delegate (NetworkMessage netMsg) {
             T msg = netMsg.ReadMessage<T>();
-            msg.processMessage(this);
+            msg.processMessage(this.map.connectedPlayerFromNetworkConnection(netMsg.conn), this);
         });
     }
 }

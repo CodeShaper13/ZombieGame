@@ -1,13 +1,13 @@
-﻿using UnityEngine;
+﻿using fNbt;
+using UnityEngine;
 
-public class TaskHarvestNearby : TaskBase<UnitBuilder> {
+public class TaskHarvestNearby : TaskBase<UnitBuilder>, ICancelableTask {
 
     private HarvestableObject target;
     private float cooldown;
     private BuildingBase dropoffPoint;
 
-    public TaskHarvestNearby(UnitBuilder unit) : base(unit) {
-    }
+    public TaskHarvestNearby(UnitBuilder unit) : base(unit) { }
 
     public override void drawDebug() {
         base.drawDebug();
@@ -23,16 +23,16 @@ public class TaskHarvestNearby : TaskBase<UnitBuilder> {
     }
 
     private bool func() {
-        return this.getDistance(this.target) <= (this.unit.getSizeRadius() + this.target.getSizeRadius() + 0.75f);
+        return this.getDistance(this.target) <= (this.unit.getSizeRadius() + this.target.getSizeRadius() + 0.5f);
     }
 
-    public override bool preform() {
-        this.cooldown -= Time.deltaTime;
+    public override bool preform(float deltaTime) {
+        this.cooldown -= deltaTime;
 
         if(this.unit.canHoldMore()) {
             // Find something to harvest.
             if(this.target == null) {
-                this.target = (HarvestableObject)this.unit.map.findClosestObject(this.unit.getFootPos(), HarvestableObject.predicateIsHarvestable);
+                this.target = (HarvestableObject)this.unit.map.findClosestObject(this.unit.getFootPos(), EntitySelecter.isHarvestable);
             }
 
             if(this.target == null) {
@@ -43,6 +43,8 @@ public class TaskHarvestNearby : TaskBase<UnitBuilder> {
             }
 
             // Harvest from the nearby object if it is in range.
+            Debug.Log("func: " + ((this.unit.getSizeRadius() + this.target.getSizeRadius() + 1f)));
+            Debug.Log("dis:  " + this.getDistance(this.target));
             if(this.cooldown <= 0 && this.func()) {
                 if(this.target.harvest(this.unit)) {
                     // Target was consumed.
@@ -68,5 +70,25 @@ public class TaskHarvestNearby : TaskBase<UnitBuilder> {
         }
 
         return true;
+    }
+
+    public override void readFromNbt(NbtCompound tag) {
+        base.readFromNbt(tag);
+
+        this.cooldown = tag.getFloat("cooldown");
+        this.target = this.unit.map.findMapObjectFromGuid<HarvestableObject>(tag.getGuid("target"));
+        this.dropoffPoint = this.unit.map.findMapObjectFromGuid<BuildingBase>(tag.getGuid("dropoffPoint"));
+    }
+
+    public override void writeToNbt(NbtCompound tag) {
+        base.writeToNbt(tag);
+
+        tag.setTag("cooldown", this.cooldown);
+        if(this.target != null) {
+            tag.setTag("target", this.target.getGuid());
+        }
+        if(this.dropoffPoint != null) {
+            tag.setTag("dropoffPoint", this.dropoffPoint);
+        }
     }
 }

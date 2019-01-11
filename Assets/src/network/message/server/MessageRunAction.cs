@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class MessageRunAction : AbstractMessage<NetHandlerServer> {
+public class MessageRunAction : AbstractMessageServer {
 
     public readonly int buttonID;
     public readonly int childIndex;
@@ -24,7 +24,7 @@ public class MessageRunAction : AbstractMessage<NetHandlerServer> {
         return 1004;
     }
 
-    public override void processMessage(NetHandlerServer handler) {
+    public override void processMessage(ConnectedPlayer sender, NetHandlerServer handler) {
         handler.callActionButtonFunction(this);
     }
 }
