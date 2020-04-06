@@ -1,35 +1,31 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using fNbt;
 
-public class MapData : MonoBehaviour {
+public class MapData {
 
-    public int setupTime = 60;
+    public string saveName;
+    public int seed;
 
-    public EnumGeneratorType mapGenerator;
+    public MapData() : this("nul", 0) { }
 
-    [Header("")]
-
-    public Map map;
-    
-    private Dictionary<EnumTeam, SpawnPosition> spawnPositions;
-
-    private void Awake() {
-        this.spawnPositions = new Dictionary<EnumTeam, SpawnPosition>();
-
-        foreach(SpawnPosition sp in this.transform.GetComponentsInChildren<SpawnPosition>()) {
-            this.spawnPositions.Add(sp.getTeam(), sp);
-        }
+    public MapData(string name, int seed) {
+        this.saveName = name;
+        this.seed = seed;
     }
 
-    public Vector3? getSpawnPosFromTeam(EnumTeam team) {
-        if(this.spawnPositions.ContainsKey(team)) {
-            return this.spawnPositions[team].transform.position;;
-        } else {
-            return null;
-        }
+    /// <summary>
+    /// Creates a new map data from NBT.
+    /// </summary>
+    public MapData(NbtCompound tag) {
+        this.saveName = tag.getString("mapName");
+        this.seed = tag.getInt("seed");
     }
 
-    public int getPlayerCount() {
-        return this.spawnPositions.Count;
+    public NbtCompound writeToNbt() {
+        NbtCompound tag = new NbtCompound("data");
+
+        tag.setTag("mapName", this.saveName);
+        tag.setTag("seed", this.seed);
+
+        return tag;
     }
 }

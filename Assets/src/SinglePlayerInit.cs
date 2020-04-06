@@ -1,12 +1,26 @@
 ﻿using UnityEngine;
 
+// Unused!!!
+
+[DisallowMultipleComponent]
 public class SinglePlayerInit : MonoBehaviour {
 
-    private void Awake() {
-        //GameObject.Instantiate(References.list.mapPrefab);
+    [SerializeField]
+    private MapBase map;
 
-        Player player = GameObject.FindObjectOfType<Player>();
-        player.team = Team.ORANGE;
-        player.initUIs();
+    private void Awake() {
+        print("!!!");
+        //NetworkManager.singleton.
+
+        this.map.gameObject.SetActive(true);
+    }
+
+    private void Start() {
+        this.map.initialize(new MapData("world", 123));
+    }
+
+    private void OnEnable() {
+        print("onenable");
     }
 }
+

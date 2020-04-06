@@ -3,33 +3,35 @@
 [RequireComponent(typeof(SpriteRenderer))]
 public class UnitDestinationEffect : MonoBehaviour {
 
-    private const float HEIGHT = 0.1f;
+    [SerializeField]
+    private Vector3 spriteOffset;
+    [SerializeField]
+    private float fadeTime = 1f;
 
     private SpriteRenderer sr;
-    private float f;
+    private float fadeProgress;
 
     private void Awake() {
         this.sr = this.transform.GetComponent<SpriteRenderer>();
-        this.transform.position.setY(HEIGHT);
         this.setAlpha(0);
     }
 
     private void Update() {
-        if(!Main.instance().isPaused()) {
-            this.f -= Time.deltaTime;
-            if(this.f >= 0) {
-                this.setAlpha(this.f);
+        if(!Pause.isPaused()) {
+            this.fadeProgress -= Time.deltaTime;
+            if(this.fadeProgress >= -1) {
+                this.setAlpha(this.fadeProgress);
             }
         }
     }
 
     public void setPosition(Vector3 pos) {
-        this.transform.position = pos.setY(HEIGHT);
+        this.transform.position = pos + this.spriteOffset;
         this.setAlpha(1);
-        this.f = 2f;
+        this.fadeProgress = this.fadeTime;
     }
 
     private void setAlpha(float alpha) {
-        this.sr.color = sr.color.setA(alpha);
+        this.sr.color = sr.color.setAlpha(alpha);
     }
 }

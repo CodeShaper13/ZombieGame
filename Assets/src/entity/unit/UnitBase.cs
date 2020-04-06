@@ -1,11 +1,13 @@
 ﻿using fNbt;
 using System;
 using UnityEngine;
-using UnityEngine.AI;
 using UnityEngine.Networking;
 
-[RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(NavAgent2D))]
 public abstract class UnitBase : SidedEntity {
+
+    // Set via inspector
+    public UnitData unitData;
 
     public MoveHelper moveHelper;
 
@@ -32,12 +34,16 @@ public abstract class UnitBase : SidedEntity {
     public override void OnStartServer() {
         base.OnStartServer();
 
-        this.unitStats = new UnitStats(this.getData());
+        this.unitStats = new UnitStats(this.unitData);
         this.setTask(null);
     }
 
+    public string debug;
+
     public override void onUpdate(float deltaTime) {
         base.onUpdate(deltaTime);
+
+        this.debug = this.getTask().ToString();
 
         if(this.overrideMovementDestination != null) {
             if(Vector3.Distance(this.getFootPos(), (Vector3)this.overrideMovementDestination) <= this.overrideMovementStopDis + 0.5f) {
@@ -47,6 +53,7 @@ public abstract class UnitBase : SidedEntity {
         else {
             bool continueExecuting = this.task.preform(deltaTime);
             if(!continueExecuting) {
+                print("setitng to idle");
                 this.setTask(null, true); // Set unit to idle.
             }
         }
@@ -65,10 +72,10 @@ public abstract class UnitBase : SidedEntity {
         base.drawDebug();
 
         // Draw a debug arrow pointing forward.
-        GLDebug.DrawLineArrow(this.getPos(), this.getPos() + this.transform.forward, 0.5f, 20, Color.blue, 0, true);
+        //GLDebug.DrawLineArrow(this.getPos(), this.getPos() + this.transform.forward, 0.5f, 20, Color.blue, 0, true);
 
         if(this.isServer) {
-            this.moveHelper.drawDebug();
+            //this.moveHelper.drawDebug();
 
             if(this.overrideMovementDestination == null && this.task != null) {
                 this.task.drawDebug();
@@ -76,25 +83,30 @@ public abstract class UnitBase : SidedEntity {
         }
     }
 
+    public override int getMaxHealth() {
+        return this.unitData.maxHealth;
+    }
+
     public override void colorObject() {
         base.colorObject();
 
         Color color = this.getTeam().getColor();
-        this.GetComponent<MeshRenderer>().material.color = color;
+//        this.GetComponent<MeshRenderer>().material.color = color;
     }
 
+    /// <summary>
+    /// Returns the position of this Units feet.
+    /// </summary>
     public virtual Vector3 getFootPos() {
-        return this.transform.position - new Vector3(0, 1, 0);
+        return this.transform.position - new Vector3(0, 0.5f, 0);
     }
 
     public override float getSizeRadius() {
         return 0.5f;
     }
 
-    public abstract EntityBaseStats getData();
-
     public override string getDisplayName() {
-        return this.getData().getUnitTypeName();
+        return this.unitData.unitName;
     }
 
     public override int getButtonMask() {
@@ -115,7 +127,7 @@ public abstract class UnitBase : SidedEntity {
                 this.task.onFinish();
             }
 
-            this.task = (newTask == null) ? new TaskAttackNearby(this) : newTask;
+            this.task = (newTask == null) ? new TaskIdle(this) : newTask;
             this.taskCancelable = this.task is ICancelableTask;
         }
     }
@@ -170,10 +182,12 @@ public abstract class UnitBase : SidedEntity {
         return new AttackMelee(this);
     }
 
-    public abstract int getAttackAmount();
+    public int getAttackAmount() {
+        return this.unitData.attack;
+    }
 
     public override float getHealthBarHeight() {
-        return 1.95f;
+        return 0.7f;
     }
 
     [ServerSideOnly]
@@ -181,7 +195,7 @@ public abstract class UnitBase : SidedEntity {
         base.readFromNbt(tag);
 
         this.lastPos = tag.getVector3("lastPos");
-        this.unitStats = new UnitStats(tag, this.getData());
+        this.unitStats = new UnitStats(tag, this.unitData);
 
         bool flag = tag.getBool("hasMovementOverride");
         if(flag) {

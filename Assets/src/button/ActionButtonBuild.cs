@@ -15,7 +15,6 @@
         this.setShouldDisableFunction((entity) => {
             int cost = this.buildingData.getCost();
             return cost > Player.localPlayer.currentTeamResources;
-            //return cost > entity.getTeam().getResources();
         });
     }
 

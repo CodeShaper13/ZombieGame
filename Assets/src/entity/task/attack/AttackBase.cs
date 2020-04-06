@@ -11,7 +11,7 @@ public abstract class AttackBase {
     }
 
     public virtual LivingObject attack(LivingObject target) {
-        if(Time.time >= (this.lastAttack + Constants.AI_MELEE_ATTACK_RATE) && this.inRangeToAttack(target)) {
+        if(Time.time >= (this.lastAttack + this.getAttackRate()) && this.inRangeToAttack(target)) {
             this.preformAttack(target);
             this.lastAttack = Time.time;
         }
@@ -29,4 +29,6 @@ public abstract class AttackBase {
     /// attack cooldown has not finished.
     /// </summary>
     protected abstract void preformAttack(LivingObject target);
+
+    protected abstract float getAttackRate();
 }

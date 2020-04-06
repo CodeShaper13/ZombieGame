@@ -1,26 +1,27 @@
 ﻿using System;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Networking;
 
+[DisallowMultipleComponent]
 public class Main : MonoBehaviour {
 
     /// <summary> If true, debug mode is on. </summary>
     public static bool DEBUG
         #if UNITY_EDITOR
-        = true
+        = false
         #endif
         ;
+    /// <summary> If true, a new world is instantly created on startup. </summary>
+    public const bool DEBUG_FAST_LOAD = true;
+
     public static bool DEBUG_HEALTH = false;
+    public static string SAVE_DIR = "saves/";
 
     private static Main singleton;
 
+    private GameState gameState;
     private string username;
-    private bool paused;
-
-    /// <summary> If true, the current game is a single player game. 
-    /// This is not accurate outside of a game (eg, on the title scree).
-    /// </summary>
-    public bool isSinglePlayerGame;
 
     public static Main instance() {
         return Main.singleton;
@@ -30,29 +31,28 @@ public class Main : MonoBehaviour {
         if (Main.singleton == null) {
             Main.singleton = this;
 
+            NetworkTransport.Init();
+
             // Preform bootstrap.
             Constants.bootstrap();
             Registry.registryBootstrap();
             GuiManager.guiBootstrap();
-            Names.bootstrap();
             TaskManager.bootstrap();
 
             // Find a username.
             this.username = this.readUsernameFromFile();
             Logger.log("Setting Username to \"" + this.username + "\"");
 
-            #if UNITY_EDITOR
-                // Debug
-                this.isSinglePlayerGame = GameObject.FindObjectOfType<CustomNetworkManager>() == null;
-            #endif
+            this.gameState = new GameState();
+            this.gameState.readFromFile();
+
+            GameObject.DontDestroyOnLoad(gameObject);
         }
         else if (Main.singleton != this) {
             // As every scene contains a Main object, destroy the new ones that are loaded.
             GameObject.Destroy(this.gameObject);
             return;
         }
-
-        GameObject.DontDestroyOnLoad(gameObject);
     }
 
     public string getUsername() {
@@ -60,18 +60,13 @@ public class Main : MonoBehaviour {
     }
 
     /// <summary>
-    /// Returns true if the game is paused.
-    /// </summary>
-    public bool isPaused() {
-        return this.paused;
-    }
-
-    /// <summary>
     /// Pauses the game and handles the blocking of input.
     /// </summary>
     public void pauseGame() {
-        this.paused = true;
-        Time.timeScale = 0;
+        Pause.pause();
+        if(Main.getNetManager().isSinglePlayer) {
+            Pause.pause();
+        }
         GuiManager.openGui(GuiManager.paused);
     }
 
@@ -79,9 +74,22 @@ public class Main : MonoBehaviour {
     /// Resumes the game.
     /// </summary>
     public void resumeGame() {
-        GuiManager.closeCurrentGui();
-        this.paused = false;
-        Time.timeScale = 1;
+        GuiManager.closeTopGui();
+        Pause.unPause();
+    }
+
+    public static void loadScene(string sceneName, MapData data, bool singlePlayer) {
+        CustomNetworkManager cnm = Main.getNetManager();
+        cnm.isSinglePlayer = singlePlayer;
+
+        cnm.StartHost();
+        cnm.ServerChangeScene(sceneName);
+
+        cnm.mapData = data;
+    }
+
+    public static CustomNetworkManager getNetManager() {
+        return (CustomNetworkManager)NetworkManager.singleton;
     }
 
     private string readUsernameFromFile() {
@@ -93,7 +101,7 @@ public class Main : MonoBehaviour {
                 return s1;
             }
         }
-        Logger.logWarning("Could not find \"username.txt\", generating random username.");
+        Logger.logWarning("Could not find \"username.txt\", generating random username...");
         return Guid.NewGuid().ToString();
     }
 }

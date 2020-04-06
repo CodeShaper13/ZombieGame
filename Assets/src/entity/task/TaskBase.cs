@@ -59,15 +59,6 @@ public abstract class TaskBase<T> : ITask where T : UnitBase {
         return Vector3.Distance(this.unit.getFootPos(), point);
     }
 
-    ///// <summary>
-    ///// Checks if the unit is next to the passed building.
-    ///// </summary>
-    //protected bool nextToBuilding(BuildingBase building) {
-    //    Vector2 v = building.getFootprintSize();
-    //    Bounds b = new Bounds(building.getPos(), new Vector3(v.x + 1f, 4, v.y + 1f));
-    //    return b.Intersects(unit.GetComponent<Collider>().bounds);
-    //}
-
     public abstract bool preform(float deltaTime);
 
     public virtual void writeToNbt(NbtCompound tag) { }

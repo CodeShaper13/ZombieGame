@@ -9,28 +9,36 @@ public class SelectionBox : MonoBehaviour {
     private bool isSelecting = false;
     private Vector3 mousePosition1;
 
-    public void init(Player player) {
-        this.player = player;
+    private Camera mainCamera;
 
+    private void Awake() {
+        this.player = this.GetComponent<Player>();
+
+        // Create a texture to use.
         this.whiteTexture = new Texture2D(1, 1);
         this.whiteTexture.SetPixel(0, 0, Color.white);
         this.whiteTexture.Apply();
     }
-    
+
+    private void Start() {
+        this.mainCamera = Camera.main;
+    }
+
     public void updateRect() {
-        // If we press the left mouse button, save mouse location and begin selection
+        // If we press the middle mouse button, save mouse location and begin selection
         if(Input.GetMouseButtonDown(2)) {
             this.isSelecting = true;
             this.mousePosition1 = Input.mousePosition;
         }
-        // If we let go of the left mouse button, end selection
+        // If we let go of the middle mouse button, end selection
         if(Input.GetMouseButtonUp(2)) {
             this.isSelecting = false;
         }
 
-        foreach(MapObject obj in Map.instance.mapObjects) {
-            if(obj is UnitBase) {
-                if(isWithinSelectionBounds(obj)) {
+        // Check for objects within the rect.
+        foreach(MapObject obj in MapBase.instance.mapObjects) {
+            if(obj is UnitBase && ((UnitBase)obj).getTeam() == this.player.getTeam()) {
+                if(this.isWithinSelectionBounds(obj.transform)) {
                     this.player.selectedParty.tryAdd((UnitBase)obj);
                 }
             }
@@ -40,7 +48,7 @@ public class SelectionBox : MonoBehaviour {
     private void OnGUI() {
         if(this.isSelecting) {
             // Create a rect from both mouse positions
-            var rect = this.getScreenRect(this.mousePosition1, Input.mousePosition);
+            Rect rect = this.getScreenRect(this.mousePosition1, Input.mousePosition);
             this.drawScreenRect(rect, new Color(0.8f, 0.8f, 0.95f, 0.25f));
             this.drawScreenRectBorder(rect, 2, new Color(0.8f, 0.8f, 0.95f));
         }
@@ -75,23 +83,23 @@ public class SelectionBox : MonoBehaviour {
     }
 
     private Bounds getViewportBounds(Vector3 screenPosition1, Vector3 screenPosition2) {
-        Vector3 v1 = this.player.playerCamera.ScreenToViewportPoint(screenPosition1);
-        Vector3 v2 = this.player.playerCamera.ScreenToViewportPoint(screenPosition2);
+        Vector3 v1 = this.mainCamera.ScreenToViewportPoint(screenPosition1);
+        Vector3 v2 = this.mainCamera.ScreenToViewportPoint(screenPosition2);
         Vector3 min = Vector3.Min(v1, v2);
         Vector3 max = Vector3.Max(v1, v2);
-        min.z = this.player.playerCamera.nearClipPlane;
-        max.z = this.player.playerCamera.farClipPlane;
+        min.z = this.mainCamera.nearClipPlane;
+        max.z = this.mainCamera.farClipPlane;
 
         Bounds bounds = new Bounds();
         bounds.SetMinMax(min, max);
         return bounds;
     }
 
-    private bool isWithinSelectionBounds(MapObject mapObj) {
+    private bool isWithinSelectionBounds(Transform t) {
         if(!isSelecting) {
             return false;
         }
         Bounds viewportBounds = this.getViewportBounds(mousePosition1, Input.mousePosition);
-        return viewportBounds.Contains(this.player.playerCamera.WorldToViewportPoint(mapObj.transform.position));
+        return viewportBounds.Contains(this.mainCamera.WorldToViewportPoint(t.position));
     }
 }

@@ -4,10 +4,12 @@ using UnityEngine;
 public class TaskAttackNearby : TaskBase<UnitBase>, ICancelableTask {
 
     protected LivingObject target;
+    protected bool ignoreDistances;
 
     public TaskAttackNearby(UnitBase unit, LivingObject attackTarget = null) : base(unit) {
         if(attackTarget != null) {
             this.target = attackTarget;
+            this.ignoreDistances = true;
         }
         else {
             this.target = this.findTarget();
@@ -15,9 +17,7 @@ public class TaskAttackNearby : TaskBase<UnitBase>, ICancelableTask {
     }
 
     public override bool preform(float deltaTime) {
-        this.preformAttack();
-
-        return true;
+        return this.preformAttack();
     }
 
     public override void drawDebug() {
@@ -27,8 +27,8 @@ public class TaskAttackNearby : TaskBase<UnitBase>, ICancelableTask {
         }
     }
 
-    protected virtual void preformAttack() {
-        if(Util.isAlive(this.target) && Vector3.Distance(this.unit.getPos(), this.target.getPos()) <= Constants.AI_FIGHTING_FIND_RANGE) {
+    protected virtual bool preformAttack() {
+        if(Util.isAlive(this.target) && (Vector3.Distance(this.unit.getPos(), this.target.getPos()) <= Constants.AI_FIGHTING_FIND_RANGE || this.ignoreDistances)) {
             // There is a target and it is close enough to "see".
             this.func();
         }
@@ -36,6 +36,8 @@ public class TaskAttackNearby : TaskBase<UnitBase>, ICancelableTask {
             // Target is dead or out of range, find a new one.
             this.target = this.findTarget();
         }
+
+        return Util.isAlive(this.target);
     }
 
     /// <summary>
@@ -52,8 +54,7 @@ public class TaskAttackNearby : TaskBase<UnitBase>, ICancelableTask {
         if(this.unit.attack.inRangeToAttack(this.target)) {
             this.target = this.unit.attack.attack(this.target);
             this.moveHelper.stop();
-        }
-        else {
+        } else {
             this.moveHelper.setDestination(this.target);
         }
     }

@@ -3,13 +3,14 @@ using System;
 using UnityEngine;
 using UnityEngine.Networking;
 
+
 [DisallowMultipleComponent]
 public abstract class MapObject : NetworkBehaviour, IDrawDebug, INbtSerializable {
 
     [HideInInspector]
-    public Map map;
+    public MapBase map;
 
-    /// <summary> Objects marked as immutable are destroyed via a button or edited (rotated, etc.) </summary>
+    /// <summary> Objects marked as immutable can not be destroyed via a button or edited (rotated, etc.) </summary>
     [SerializeField] // Used so it can be set in the inspecter.
     [SyncVar]
     private bool immutable;
@@ -18,8 +19,7 @@ public abstract class MapObject : NetworkBehaviour, IDrawDebug, INbtSerializable
     public NbtCompound nbtTag;
 
     private void Awake() {
-        this.map = Map.instance;
-        //print("MapObject.Awake() was called and Map is (" + this.map + ")");
+        this.map = MapBase.instance;
 
         this.onAwake();
     }
@@ -31,12 +31,8 @@ public abstract class MapObject : NetworkBehaviour, IDrawDebug, INbtSerializable
     public override void OnStartClient() {
         base.OnStartClient();
 
-        if(this.isClient) {
-            //print("isClient = true");
-        }
         if(!this.isServer) {
             this.map.addMapObject(this);
-            //print("isServer = false");
         }
 
         this.onUiInit();
@@ -73,7 +69,6 @@ public abstract class MapObject : NetworkBehaviour, IDrawDebug, INbtSerializable
     /// A version of onAwake() that is only called on the server side after onAwake().
     /// </summary>
     public virtual void onServerAwake() {
-        //print("serverAwake");
         this.guid = Guid.NewGuid();
     }
 
@@ -81,9 +76,7 @@ public abstract class MapObject : NetworkBehaviour, IDrawDebug, INbtSerializable
     /// Called after onStart() and should be used to initialize any world space UIs
     /// that this MapObject has.
     /// </summary>
-    public virtual void onUiInit() {
-        //print("onUiInit");
-    }
+    public virtual void onUiInit() { }
 
     /// <summary>
     /// Called every frame to update this MapObject ont he server side.  Do not

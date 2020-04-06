@@ -8,7 +8,9 @@ public class BuildingFlag : BuildingBase {
     private const float speed = 5f;
     private const float maxRotation = 6f;
 
-    private void Update() { // Should this all be mvoed to a different method?
+    public override void onUpdate(float deltaTime) {
+        base.onUpdate(deltaTime);
+
         this.flagRotatePoint.rotation = Quaternion.Euler(
             0f,
             (maxRotation * Mathf.Sin(Time.time * speed)) + 90,
@@ -19,10 +21,6 @@ public class BuildingFlag : BuildingBase {
         base.colorObject();
 
         this.flagCloth.material.color = this.getTeam().getColor();
-    }
-
-    public override int getMaxHealth() {
-        return 100;
     }
 
     public override Vector2 getFootprintSize() {

@@ -2,6 +2,10 @@
 
 public class BuildingWorkshop : BuildingQueuedProducerBase {
 
+    public override void colorObject() {
+        this.transform.GetComponent<MeshRenderer>().material.color = this.getTeam().getColor();
+    }
+
     public override float getHealthBarHeight() {
         return 2f;
     }

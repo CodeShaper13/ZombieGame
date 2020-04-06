@@ -2,12 +2,19 @@
 using UnityEngine;
 using UnityEngine.Networking;
 
+/// <summary>
+/// Represents a MapObject that is alive.  It has health and can be damaged.
+/// </summary>
+[RequireComponent(typeof(OutlineHelper))]
 public abstract class LivingObject : MapObject {
 
     [SyncVar(hook = "hookOnChangeHealth")]
     private int currentHealth;
     private ProgressBar healthBar;
     private bool shouldShowHealth;
+
+    [HideInInspector]
+    public OutlineHelper outlineHelper;
 
     public override void onAwake() {
         base.onAwake();
@@ -18,7 +25,10 @@ public abstract class LivingObject : MapObject {
     public override void onUiInit() {
         base.onUiInit();
 
-        this.shouldShowHealth = true; // Main.DEBUG_HEALTH || !(this is HarvestableObject); // || (this is SidedEntity && ((SidedEntity)this).getTeam() == Player.localPlayer.getTeam());
+        this.outlineHelper = this.GetComponent<OutlineHelper>();
+        this.outlineHelper.hideAll();
+
+        this.shouldShowHealth = Main.DEBUG_HEALTH || !(this is HarvestableObject) || (this is SidedEntity && ((SidedEntity)this).getTeam() == Player.localPlayer.getTeam());
 
         this.hookOnChangeHealth(this.currentHealth);
     }

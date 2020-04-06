@@ -4,11 +4,13 @@ using UnityEngine;
 
 public class SelectedParty : SelectedDisplayerBase {
 
-    private const int PARTY_SIZE = 12;
+    [SerializeField]
+    private int partySize = 10;
+    [SerializeField]
+    private GameObject buttonPrefab = null;
+    [SerializeField]
+    private float buttonSpacing = 4f;
 
-    public GameObject buttonPrefab;
-
-    [SerializeField] // For debugging in inspector
     private List<UnitBase> unitsInParty;
     private PartyButton[] partyButtons;
 
@@ -16,12 +18,13 @@ public class SelectedParty : SelectedDisplayerBase {
         base.init(player);
 
         this.unitsInParty = new List<UnitBase>();
-        this.partyButtons = new PartyButton[PARTY_SIZE];
+        this.partyButtons = new PartyButton[this.partySize];
 
-        for(int i = 0; i < PARTY_SIZE; i++) {
+        // Create the buttons along the bottom of the screen.
+        for(int i = 0; i < this.partyButtons.Length; i++) {
             GameObject btn = GameObject.Instantiate(this.buttonPrefab, this.transform);
             RectTransform rt = btn.GetComponent<RectTransform>();
-            rt.anchoredPosition = new Vector3(-((rt.sizeDelta.y * i) + 36), 36, 0);
+            rt.anchoredPosition = new Vector3(-(((rt.sizeDelta.y + buttonSpacing) * i) + 40), 40);
             btn.name = "PartyButton[" + i + "]";
 
             PartyButton pb = btn.GetComponent<PartyButton>();
@@ -31,12 +34,13 @@ public class SelectedParty : SelectedDisplayerBase {
         }
     }
 
-    // Hacky method.
-    public override void onUpdate() {
-        for(int i = this.unitsInParty.Count - 1; i >= 0; i--) {
-            UnitBase unit = this.unitsInParty[i];
-            if(!Util.isAlive(unit)) {
-                this.remove(unit);
+    private void Update() {
+        if(!Pause.isPaused()) {
+            for(int i = this.unitsInParty.Count - 1; i >= 0; i--) {
+                UnitBase unit = this.unitsInParty[i];
+                if(!unit) {
+                    this.remove(unit);
+                }
             }
         }
     }
@@ -56,8 +60,8 @@ public class SelectedParty : SelectedDisplayerBase {
 
     public override void clearSelected() {
         foreach(UnitBase unit in this.unitsInParty) {
-            if(Util.isAlive(unit)) {
-                unit.setOutlineVisibility(false, EnumOutlineParam.SELECTED);
+            if(unit) {
+                unit.outlineHelper.setInvisible("selected");
             }
         }
         this.unitsInParty.Clear();
@@ -103,7 +107,7 @@ public class SelectedParty : SelectedDisplayerBase {
     /// Returns true if the party is full and it can't hold any more members.
     /// </summary>
     public bool isFull() {
-        return this.getPartySize() >= PARTY_SIZE;
+        return this.getPartySize() >= this.partySize;
     }
 
     /// <summary>
@@ -115,12 +119,12 @@ public class SelectedParty : SelectedDisplayerBase {
             this.partyButtons[index].setUnit(null);
             this.unitsInParty.RemoveAt(index);
 
-            if(Util.isAlive(unit)) {
-                unit.setOutlineVisibility(false, EnumOutlineParam.SELECTED);
+            if(unit) {
+                unit.outlineHelper.setInvisible("selected");
             }
 
             // Slide the units down so there isn't an empty spot.
-            for(int i = index; i < PARTY_SIZE; i++) {
+            for(int i = index; i < this.partySize; i++) {
                 this.partyButtons[i].setUnit(this.getUnit(i));
             }
         }
@@ -142,7 +146,7 @@ public class SelectedParty : SelectedDisplayerBase {
     public bool tryAdd(UnitBase unit) {
         if(!this.isFull() && !this.unitsInParty.Contains(unit)) {
             this.unitsInParty.Add(unit);
-            unit.setOutlineVisibility(true, EnumOutlineParam.SELECTED);
+            unit.outlineHelper.setVisible("selected");
             this.partyButtons[this.unitsInParty.Count - 1].setUnit(unit);
 
             this.hideIfEmpty();
@@ -152,18 +156,6 @@ public class SelectedParty : SelectedDisplayerBase {
         else {
             return false;
         }
-    }
-
-    public void onButtonLeftClick(int index) {
-        UnitBase unit = this.getUnit(index);
-        if(unit != null) {
-            this.player.centerCameraOn(unit.transform.position);
-        }
-    }
-
-    public void onButtonRightClick(int index) {
-        UnitBase unit = this.getUnit(index);
-        this.remove(unit);
     }
 
     /// <summary>

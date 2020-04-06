@@ -1,26 +1,49 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GuiPauseScreen : GuiBase {
 
     [SerializeField]
+    private Text text;
+    [SerializeField]
     private Button saveGameButton;
+    [SerializeField]
+    private Button broadcastButton;
+    [SerializeField]
+    private Button restartButton;
 
-    public override void onGuiInit() {
-        this.saveGameButton.gameObject.SetActive(false);
-    }
+    public override void onGuiInit() { }
 
     public override void onGuiOpen() {
-        if(Map.instance.isServer) {
-            this.saveGameButton.gameObject.SetActive(true);
+        if(Main.getNetManager().isSinglePlayer) {
+            // Single Player
+            this.text.text = "Paused";
+            this.restartButton.gameObject.SetActive(true);
+            this.saveGameButton.gameObject.SetActive(false);
+            this.broadcastButton.gameObject.SetActive(false);
+        }
+        else {
+            // Multi Player
+            this.text.text = string.Empty;
+            this.restartButton.gameObject.SetActive(false);
+
+            if(MapBase.instance.isServer) {
+                // Host
+                this.saveGameButton.gameObject.SetActive(true);
+                this.broadcastButton.gameObject.SetActive(true);
+
+                if(GameObject.FindObjectOfType<NetworkDiscovery>().running) {
+                    this.broadcastButton.interactable = false;
+                }
+            } else {
+                this.saveGameButton.gameObject.SetActive(true);
+            }
         }
     }
 
     public override void onGuiClose() {
-        // Hide buttons, they will be reactivated when the gui opens.
-        this.saveGameButton.gameObject.SetActive(false);
-
         Main.instance().resumeGame();
     }
 
@@ -29,16 +52,35 @@ public class GuiPauseScreen : GuiBase {
     }
 
     public void callback_saveGame() {
-        Map.instance.saveMap();
+        ((MapMP)MapBase.instance).saveMap();
     }
 
     public void callback_quitGame() {
         NetworkManager manager = NetworkManager.singleton;
 
         if(NetworkServer.active || manager.IsClientConnected()) {
+            print("stopping");
             manager.StopHost();
         }
 
-        GuiManager.closeCurrentGui();
+        GameObject.FindObjectOfType<NetworkDiscovery>().StopBroadcast();
+
+        SceneManager.LoadScene("TitleScreen");
+
+        GuiManager.closeAllGui();
+    }
+
+    public void callback_broadcast() {
+        NetworkDiscovery discovery = GameObject.FindObjectOfType<NetworkDiscovery>();
+        discovery.Initialize();
+        //discovery.broadcastData = "spam!";  // This is NetworkManager:localhost:7777 by default
+        discovery.StartAsServer();
+
+        this.broadcastButton.interactable = false;
+    }
+
+    public void callback_restart() {
+        CampaignLevelData cld = ((MapSP)MapBase.instance).getCampaignData();
+        // TODO load scene again
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine;
 public class Options {
 
     public OptionFloat sensitivity = new OptionFloat("Sensitivity", 40f);
-    public OptionFloat zoomSensitivity = new OptionFloat("Zoom Speed", 300f);
+    public OptionFloat zoomSensitivity = new OptionFloat("Zoom Speed", 500f);
 
     private List<Option<object>> allOptions = new List<Option<object>>();
 

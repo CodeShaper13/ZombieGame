@@ -10,7 +10,7 @@ public class MessageShowStatsGui : AbstractMessageClient {
     public MessageShowStatsGui() { }
 
     public MessageShowStatsGui(UnitBase unit, UnitStats unitStats) {
-        this.nameString = unitStats.getName() + "\n" + unit.getData().getUnitTypeName();
+        this.nameString = unitStats.getName() + "\n" + unit.unitData.unitName;
         this.statsString = unitStats.getFormattedStatString(unit is UnitBuilder);
     }
 

@@ -6,6 +6,18 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/scenes/MultiPlayer.unity
+    path: Assets/scenes/TitleScreen.unity
+    guid: c8787f4afd7ceb54b919f2253783080f
+  - enabled: 1
+    path: Assets/scenes/Lvl1.unity
     guid: e5d7f7134065b4f458865abfe421556b
+  - enabled: 1
+    path: Assets/scenes/multiplayer/Mountains.unity
+    guid: c3ded1cc1129eff41a575f26d2def0c7
+  - enabled: 0
+    path: Assets/scenes/multiplayer/Plains.unity
+    guid: 23e10e9b229a952459fbe903e5ab2329
+  - enabled: 0
+    path: Assets/scenes/campaign/Lvl1.unity
+    guid: 658f6751e0fb6f7468462737499ed9d6
   m_configObjects: {}

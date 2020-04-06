@@ -18,24 +18,29 @@ public class SelectedBuilding : SelectedDisplayerBase {
         this.otherText = texts[1];
     }
 
-    public override void onUpdate() {
-        if(this.selected != null) {
+    private void Update() {
+        if(Pause.isPaused()) {
+            return;
+        }
+
+        if(this.selected) {
             string s = this.selected.getHealth() + "/" + this.selected.getMaxHealth() + (this.selected.isConstructing() ? " (Building)" : string.Empty);
             this.infoText.text = this.selected.getData().getName() + "\n" + s;
 
             if(this.selected is BuildingQueuedProducerBase) {
                 BuildingQueuedProducerBase producer = (BuildingQueuedProducerBase)this.selected;
 
-                EntityBaseStats ed;
                 float trainTime = 0;
                 int queueCount = producer.trainingQueue.Count;
                 for(int i = 0; i < 3; i++) {
                     if(i < queueCount) {
+                        /*
                         ed = producer.trainingQueue[i].getPrefab().GetComponent<UnitBase>().getData();
                         if(i == 0) {
                             trainTime = ed.getProductionTime();
                         }
                         this.icons[i].setText(ed.getUnitTypeName());
+                        */
                     }
                     else {
                         this.icons[i].setText(null);
@@ -54,11 +59,14 @@ public class SelectedBuilding : SelectedDisplayerBase {
             else {
                 this.otherText.text = string.Empty;
             }
+        } else {
+            this.setUIVisible(false);
+            this.selected = null; // Be sure to set selected at null if it's dead.
         }
     }
 
     public override int getMask() {
-        return this.selected.getButtonMask();
+        return this.selected == null ? 0 : this.selected.getButtonMask();
     }
 
     [ClientSideOnly]
@@ -69,8 +77,8 @@ public class SelectedBuilding : SelectedDisplayerBase {
     }
 
     public override void clearSelected() {
-        if(this.selected != null) {
-            this.selected.setOutlineVisibility(false, EnumOutlineParam.SELECTED);
+        if(Util.isAlive(this.selected)) {
+            this.selected.outlineHelper.setInvisible("selected");
         }
         this.selected = null;
         this.setUIVisible(false);
@@ -81,7 +89,7 @@ public class SelectedBuilding : SelectedDisplayerBase {
 
         if(entity != null) {
             this.selected = entity;
-            this.selected.setOutlineVisibility(true, EnumOutlineParam.SELECTED);
+            this.selected.outlineHelper.setVisible("selected");
         }
 
         this.setUIVisible(this.selected != null);

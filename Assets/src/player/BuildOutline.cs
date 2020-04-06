@@ -1,31 +1,29 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
+[RequireComponent(typeof(SpriteRenderer))]
 public class BuildOutline : MonoBehaviour {
-
-    private const float HEIGHT = 0.1f;
 
     private Player player;
 
     [SerializeField]
-    private Material invalidMaterial;
+    private Color invalidLocationColor = Color.white;
     [SerializeField]
-    private Material validMaterial;
+    private Color validLocationColor = Color.white;
 
-    private MeshRenderer meshRenderer;
-
+    private SpriteRenderer spriteRenderer;
     private RegisteredObject buildingToPlace;
     private List<UnitBuilder> cachedBuilders;
 
-    public void init(Player player) {
-        this.player = player;
+    private void Awake() {
+        this.player = this.GetComponentInParent<Player>();
 
         this.cachedBuilders = new List<UnitBuilder>();
-        this.meshRenderer = this.GetComponent<MeshRenderer>();
+        this.spriteRenderer = this.GetComponentInChildren<SpriteRenderer>();
+    }
 
-        // Make sure this object is at the right height.
-        this.transform.position.setY(HEIGHT);
-
+    private void Start() {
         this.disableOutline();
     }
 
@@ -35,19 +33,51 @@ public class BuildOutline : MonoBehaviour {
     }      
 
     private void moveSquare() {
+        if(EventSystem.current.IsPointerOverGameObject()) {
+            this.spriteRenderer.enabled = false;
+        } else {
+            Vector2Int pos = this.player.getMousePos();
+            this.transform.position = new Vector3(pos.x - 0.5f, pos.y - 0.5f); // TODO remove decimals?
+
+            if(TileMaps.singleton.objectMap.GetTile(new Vector3Int(pos.x, pos.y, 0)) == null) {
+
+            }
+
+            this.spriteRenderer.enabled = true;
+        }
+
+        /*
         RaycastHit hit;
         Vector3 correctedHit = Vector3.zero;
-        if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit)) {
-            correctedHit = new Vector3(
-                Mathf.Round(hit.point.x),
-                HEIGHT,
-                Mathf.Round(hit.point.z));
-            this.transform.position = correctedHit;
+        if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, float.PositiveInfinity, Layers.GROUND)) {
+            // Mouse is over the ground!
+
+            ICustomBuildOutline customOutline = this.buildingToPlace.getPrefab().GetComponent<ICustomBuildOutline>();
+            bool flag = false;
+            if(customOutline != null) {
+                flag = customOutline.func(new Vector3(hit.point.x, hit.point.y), this.transform);
+            }
+
+            if(!flag) {
+                // Snap square to grid
+                correctedHit = new Vector3(
+                    Mathf.Round(hit.point.x),
+                    Mathf.Round(hit.point.y));
+                this.transform.position = correctedHit;
+                this.transform.localScale = Vector3.one;
+                this.transform.rotation = Quaternion.identity;
+            }
+
+            this.spriteRenderer.enabled = true;
         }
+        else {
+            this.spriteRenderer.enabled = false;
+        }
+        */
     }
 
     private void updateColor() {
-        this.meshRenderer.material = this.isSpaceFree() ? this.validMaterial : this.invalidMaterial;
+        this.spriteRenderer.color = this.isSpaceFree() ? this.validLocationColor : this.invalidLocationColor;
     }
 
     /// <summary>
@@ -69,7 +99,7 @@ public class BuildOutline : MonoBehaviour {
                 this.player.sendMessageToServer(new MessageConstructBuilding(
                     this.player.getTeam(),
                     this.buildingToPlace,
-                    new Vector3(this.transform.position.x, 0, this.transform.position.z),
+                    new Vector3(this.transform.position.x, this.transform.position.y),
                     builder));
 
                 this.disableOutline();
@@ -94,7 +124,7 @@ public class BuildOutline : MonoBehaviour {
         this.setSize(this.buildingToPlace.getPrefab().GetComponent<BuildingBase>());
 
         // Gray out the action buttons while the outline is being shown.
-        Player.localPlayer.actionButtons.setForceDisabled(true);
+        this.player.actionButtons.setForceDisabled(true);
     }
 
     /// <summary>
@@ -103,7 +133,7 @@ public class BuildOutline : MonoBehaviour {
     public void disableOutline() {
         this.gameObject.SetActive(false);
         this.cachedBuilders.Clear();
-        Player.localPlayer.actionButtons.setForceDisabled(false);
+        this.player.actionButtons.setForceDisabled(false);
     }
 
     /// <summary>
@@ -115,6 +145,6 @@ public class BuildOutline : MonoBehaviour {
     }
 
     private bool isSpaceFree() {
-        return !Physics.CheckBox(this.transform.position, this.transform.lossyScale / 2, this.transform.rotation, Layers.GEOMETRY);
+        return this.buildingToPlace.getPrefab().GetComponent<BuildingBase>().isValidLocation(this.transform.position);
     }
 }

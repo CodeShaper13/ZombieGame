@@ -1,21 +1,18 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.AI;
 
-public class MoveHelper : IDrawDebug {
+public class MoveHelper {
 
     private const float TURN_SPEED = 500f;
 
     private UnitBase unit;
-    private NavMeshAgent agent;
+    private NavAgent2D agent;
 
     private Vector3 lastSetCall;
 
     public MoveHelper(UnitBase unit) {
         this.unit = unit;
-        agent = this.unit.GetComponent<NavMeshAgent>();
-        agent.speed *= this.unit.getData().baseSpeedMultiplyer;
-        agent.angularSpeed = TURN_SPEED;
+        this.agent = this.unit.GetComponent<NavAgent2D>();
     }
 
     /// <summary>
@@ -31,14 +28,13 @@ public class MoveHelper : IDrawDebug {
 
     public void setDestination(Vector3 pos, float stopingDistance = -1) {
         if(pos != lastSetCall) {
-            agent.isStopped = false;
-            agent.SetDestination(pos);
+            this.agent.setDestination(pos);
 
             if(stopingDistance != -1) {
-                agent.stoppingDistance = stopingDistance;
+                this.agent.stoppingDistance = stopingDistance;
             }
             else {
-                agent.stoppingDistance = 0.25f; //TODO should this be a setting?
+                this.agent.stoppingDistance = 0.25f; //TODO should this be a setting?
             }
         }
 
@@ -46,18 +42,22 @@ public class MoveHelper : IDrawDebug {
     }
 
     /// <summary>
-    /// Stops the unit where they are.  If stopImmediately is true, the agent's velocity is set to 0, freezing it instantly.
+    /// Stops the unit where they are.
     /// </summary>
-    public void stop(bool stopImmediately = false) {
-        if(!agent.isStopped) {
-            agent.isStopped = true;
-            if(stopImmediately) {
-                agent.velocity = Vector3.zero;
-            }
+    public void stop() {
+        if(this.agent.hasPath()) {
+            this.agent.stop();
         }
     }
 
+    /*
     public void drawDebug() {
-        GLDebug.DrawLine(agent.transform.position.setY(0.5f), agent.destination.setY(0.5f), Colors.magenta);
+        GLDebug.DrawLine(agent.transform.position, agent.destination.setY(0.5f), Colors.magenta);
+
+        NavMeshPath path = this.agent.path;
+        for(int i = 0; i < path.corners.Length - 1; i++) {
+            GLDebug.DrawLine(path.corners[i], path.corners[i + 1], Colors.pink);
+        }
     }
+    */
 }

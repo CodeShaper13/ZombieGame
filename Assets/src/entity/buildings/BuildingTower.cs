@@ -29,7 +29,7 @@ public class BuildingTower : BuildingBase {
     }
 
     public override float getHealthBarHeight() {
-        return 6.5f;
+        return 5f;
     }
 
     public override Vector2 getFootprintSize() {

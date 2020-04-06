@@ -10,8 +10,9 @@ public class UnitStats {
     private string firstName;
     private string lastName;
     private EnumGender gender;
-    private Characteristic characteristic;
-    private EntityBaseStats baseStats;
+    private UnitData unitData;
+    private float hunger;
+    private float sleep;
 
     public readonly StatisticFloat distanceWalked;
     public readonly StatisticTime timeAlive;
@@ -37,38 +38,37 @@ public class UnitStats {
         this.repairsDone = new StatisticInt(this, "Repairs Done", "repairsDone");
     }
 
-    public UnitStats(EntityBaseStats baseStats) : this() {
-        this.baseStats = baseStats;
+    public UnitStats(UnitData unitData) : this() {
+        this.unitData = unitData;
 
         int easterEggRnd = Random.Range(0, 100000); // 100 thousand
         if(easterEggRnd == 1) {
             this.firstName = "Dalton";
             this.lastName = "Didelot";
             this.gender = EnumGender.MALE;
-            this.characteristic = Characteristic.a;
         }
         else if(easterEggRnd == 111599) {
             this.firstName = "PJ";
             this.lastName = "Didelot";
             this.gender = EnumGender.MALE;
-            this.characteristic = Characteristic.a; // TODO Set to the right thing.
         }
         else {
             Names.getRandomName(this.gender, out this.firstName, out this.lastName);
             this.gender = EnumGender.MALE; // Random.Range(0, 1) == 0 ? EnumGender.MALE : EnumGender.FEMALE;
-            this.characteristic = Characteristic.ALL[Random.Range(0, Characteristic.ALL.Length)];
         }
+
+        this.hunger = 1f;
+        this.sleep = 1f;
     }
 
-    public UnitStats(NbtCompound tag, EntityBaseStats baseStats) : this() {
-        this.baseStats = baseStats;
+    public UnitStats(NbtCompound tag, UnitData unitData) : this() {
+        this.unitData = unitData;
 
         NbtCompound tag1 = tag.getCompound("stats");
 
         this.firstName = tag1.getString("firstName");
         this.lastName = tag1.getString("lastName");
         this.gender = tag1.getByte("gender") == 1 ? EnumGender.MALE : EnumGender.FEMALE;
-        this.characteristic = Characteristic.ALL[tag1.getInt("characteristicID")];
 
         this.distanceWalked.readFromNbt(tag1);
         this.timeAlive.readFromNbt(tag1);
@@ -79,6 +79,9 @@ public class UnitStats {
         this.resourcesCollected.readFromNbt(tag1);
         this.buildingsBuilt.readFromNbt(tag1);
         this.repairsDone.readFromNbt(tag1);
+
+        this.hunger = tag1.getFloat("hunger", 1f);
+        this.sleep = tag1.getFloat("sleep", 1f);
     }
 
     /// <summary>
@@ -92,16 +95,20 @@ public class UnitStats {
         return this.gender;
     }
 
-    public int getMaxHealth() {
-        return this.characteristic.getHealth(this.baseStats.baseHealth);
+    public float getHunger() {
+        return this.hunger;
     }
 
-    public int getAttack() {
-        return this.characteristic.getAttack(this.baseStats.baseAttack);
+    public float getSleep() {
+        return this.sleep;
     }
 
-    public int getDefense() {
-        return this.characteristic.getDefense(this.baseStats.baseDefense);
+    public void setHunger(float hunger) {
+        this.hunger = Mathf.Clamp01(hunger);
+    }
+
+    public void setSleep(float sleep) {
+        this.sleep = Mathf.Clamp01(sleep);
     }
 
     public void writeToNBT(NbtCompound tag) {
@@ -110,7 +117,6 @@ public class UnitStats {
         tag1.setTag("firstName", this.firstName);
         tag1.setTag("lastName", this.lastName);
         tag1.setTag("gender", (byte)(this.gender == EnumGender.MALE ? 1 : 2));
-        tag1.setTag("characteristicID", this.characteristic.getId());
 
         this.distanceWalked.writeToNbt(tag1);
         this.timeAlive.writeToNbt(tag1);
@@ -122,15 +128,18 @@ public class UnitStats {
         this.buildingsBuilt.writeToNbt(tag1);
         this.repairsDone.writeToNbt(tag1);
 
+        tag1.setTag("hunger", this.hunger);
+        tag1.setTag("sleep", this.sleep);
+
         tag.Add(tag1);
     }
 
     public string getFormattedStatString(bool isBuilder) {
         StringBuilder sb = new StringBuilder();
 
-        sb.AppendLine("Health: " + this.getMaxHealth());
-        sb.AppendLine("Attack: " + this.getAttack());
-        sb.AppendLine("Defense: " + this.getDefense());
+        sb.AppendLine("Health: " + this.unitData.maxHealth);
+        sb.AppendLine("Attack: " + this.unitData.attack);
+        sb.AppendLine("Defense: " + this.unitData.defense);
 
         sb.AppendLine();
 

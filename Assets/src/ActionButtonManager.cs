@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+[DisallowMultipleComponent]
 public class ActionButtonManager : MonoBehaviour {
 
     /// <summary>
@@ -26,10 +27,10 @@ public class ActionButtonManager : MonoBehaviour {
     private bool forceDisabled;
 
     private ActionButtonRequireClick delayedButtonRef;
-    private List<SidedEntity> selectedOutlineObjects;
+    private List<LivingObject> selectedOutlineObjects;
 
-    public void init() {
-        this.player = this.GetComponentInParent<Player>();
+    public void init(Player player) {
+        this.player = player;
 
         this.subButtonCanvas = this.transform.GetChild(0);
         this.currentlyShownButtons = new List<ActionButton>();
@@ -37,10 +38,10 @@ public class ActionButtonManager : MonoBehaviour {
         this.buttonWrappers = this.makeButtons(this.transform, false);
         this.subButtonWrappers = this.makeButtons(this.subButtonCanvas, true);
         
-        this.selectedOutlineObjects = new List<SidedEntity>();
+        this.selectedOutlineObjects = new List<LivingObject>();
     }
 
-    private void LateUpdate() {
+    private void Update() {
         this.updateSideButtons();
 
         // Update if the buttons are interactable or not.
@@ -65,7 +66,8 @@ public class ActionButtonManager : MonoBehaviour {
     /// Shows the correct buttons on the side of the screen based on the selected units or building.
     /// </summary>
     private void updateSideButtons() {
-        int selectedMask = this.player.getSelected().getMask();
+        SelectedDisplayerBase sdb = this.player.getSelected();
+        int selectedMask = sdb != null ? sdb.getMask() : 0;
         this.currentlyShownButtons.Clear();
 
         // Iterate through all of the action buttons, adding the ones to a list that need to be displayed.
@@ -188,9 +190,9 @@ public class ActionButtonManager : MonoBehaviour {
         this.setForceDisabled(false);
 
         // Remove the outline from all of the entities.
-        foreach(SidedEntity entity in this.selectedOutlineObjects) {
-            if(Util.isAlive(entity)) {
-                entity.setOutlineVisibility(false, EnumOutlineParam.ACTION_OPTION);
+        foreach(LivingObject livingObj in this.selectedOutlineObjects) {
+            if(Util.isAlive(livingObj)) {
+                livingObj.outlineHelper.setInvisible("actionOption");
             }
         }
         this.selectedOutlineObjects.Clear();
@@ -204,10 +206,10 @@ public class ActionButtonManager : MonoBehaviour {
             ActionButtonRequireClick btnRequireClick = (ActionButtonRequireClick)actionButton;
 
             // Iterate through all objects and outline the ones that are valid selections.
-            foreach(SidedEntity entity in Map.instance.findMapObjects(EntitySelecter.isBuilding)) {
-                if(btnRequireClick.isValidForAction(this.player.getTeam(), entity)) {
-                    entity.setOutlineVisibility(true, EnumOutlineParam.ACTION_OPTION);
-                    this.selectedOutlineObjects.Add(entity);
+            foreach(LivingObject livingObj in MapBase.instance.findMapObjects(EntityPredicate.isLiving)) {
+                if(btnRequireClick.isValidForAction(this.player.getTeam(), livingObj)) {
+                    livingObj.outlineHelper.setVisible("actionOption");
+                    this.selectedOutlineObjects.Add(livingObj);
                 }
             }
 

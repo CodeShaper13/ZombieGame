@@ -1,5 +1,6 @@
 ﻿using fNbt;
 using System.IO;
+using UnityEngine;
 
 public class GameSaver {
 
@@ -8,18 +9,14 @@ public class GameSaver {
 
     private bool dontWriteToDisk = false;
 
-    private string saveName;
-    private string saveFolderName;
-    private string playerFolderName;
+    private DirectoryInfo saveFolder;
 
+    /// <summary>
+    /// saveName should be just the name of the save, with no leading or trailing slashes.
+    /// </summary>
     public GameSaver(string saveName) {
-        this.saveName = saveName;
-
-        this.saveFolderName = "saves/" + this.saveName + "/";
-        this.playerFolderName = this.saveFolderName + "players/";
-
-        this.makeDirIfMissing(this.saveFolderName);
-        this.makeDirIfMissing(this.playerFolderName);
+        this.saveFolder = new DirectoryInfo(Main.SAVE_DIR + "/" + saveName + "/");
+        this.makeDirIfMissing(this.saveFolder);
     }
 
     /// <summary>
@@ -29,6 +26,28 @@ public class GameSaver {
         return File.Exists(this.getSaveFileName());
     }
 
+    public MapData readMapDataFromFile() {
+        string s = this.getMapDataFileName();
+        if(File.Exists(s)) {
+            NbtFile file = new NbtFile();
+            file.LoadFromFile(s);
+
+            NbtCompound rootTag = file.RootTag;
+            return new MapData(rootTag);
+        }
+
+        return new MapData();
+    }
+
+    public void saveMapDataToFile(MapData mapData) {
+        #if UNITY_EDITOR
+            if(this.dontWriteToDisk) { return; }
+        #endif
+
+        NbtFile file = new NbtFile(mapData.writeToNbt());
+        file.SaveToFile(this.getMapDataFileName(), NbtCompression.None);
+    }
+
     /// <summary>
     /// Returns true if a save file exists for the passed Player.
     /// </summary>
@@ -36,7 +55,7 @@ public class GameSaver {
         return File.Exists(this.getPlayerFileName(player));
     }
 
-    public void readMapFromFile(Map map) {
+    public void readMapFromFile(MapMP map) {
         string s = this.getSaveFileName();
         if(File.Exists(s)) {
             NbtFile file = new NbtFile();
@@ -47,7 +66,7 @@ public class GameSaver {
         }
     }
 
-    public void saveMapToFile(Map map) {
+    public void saveMapToFile(MapMP map) {
         #if UNITY_EDITOR
             if(this.dontWriteToDisk) { return; }
         #endif
@@ -72,9 +91,7 @@ public class GameSaver {
 
     public void savePlayerToFile(Player player) {
         #if UNITY_EDITOR
-            if(this.dontWriteToDisk) {
-                return;
-            }
+            if(this.dontWriteToDisk) { return; }
         #endif
 
         NbtCompound rootTag = new NbtCompound("player");
@@ -88,19 +105,23 @@ public class GameSaver {
     /// Returns the name of the file that this map should be saved to.
     /// </summary>
     private string getSaveFileName() {
-        return this.saveFolderName + "map" + GameSaver.EXTENSION;
+        return this.saveFolder + "/map" + GameSaver.EXTENSION;
+    }
+
+    private string getMapDataFileName() {
+        return this.saveFolder + "/mapdata" + GameSaver.EXTENSION;
     }
 
     private string getPlayerFileName(Player player) {
-        return this.playerFolderName + player.getTeam().getTeamName().ToLower() + GameSaver.EXTENSION;
+        return this.saveFolder + "/" + player.getTeam().getTeamName().ToLower() + GameSaver.EXTENSION;
     }
 
     /// <summary>
     /// Create the passed directory if it doesn't exists.
     /// </summary>
-    private void makeDirIfMissing(string name) {
-        if(!this.dontWriteToDisk && !Directory.Exists(name)) {
-            Directory.CreateDirectory(name);
+    private void makeDirIfMissing(DirectoryInfo directory) {
+        if(!directory.Exists) { // && !this.dontWriteToDisk) {
+            directory.Create();
         }
     }
 }

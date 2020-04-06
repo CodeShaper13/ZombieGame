@@ -9,7 +9,7 @@ public class BuildingStoreroom : BuildingResourceHolder {
     }
 
     public override float getHealthBarHeight() {
-        return 2f;
+        return 4f;
     }
 
     public override Vector2 getFootprintSize() {

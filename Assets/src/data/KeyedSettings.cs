@@ -1,68 +1,96 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
 public class KeyedSettings {
 
-    private readonly SortedDictionary<string, SettingEntry> dict;
-    private readonly bool forceDefaults;
+    public SortedDictionary<string, SettingEntry> dict;
 
-    public KeyedSettings(TextAsset textAsset, bool forceDefaults) {
-        List<string> list = FileUtils.readTextAsset(textAsset, false);
+    /// <summary>
+    /// If true, the value found in the file is used, otherwise the default one is returned in getter methods.
+    /// </summary>
+    private readonly bool prioritizeSource;
+
+    private readonly string path;
+    private readonly string fileName;
+
+    public KeyedSettings(string path, string fileName, bool prioritizeSource) {
+        this.path = path;
+        this.fileName = fileName;
+
+        this.makeFiles();
+
+        List<string> list = FileUtils.readTextFile(this.path + "/" + this.fileName, false);
         this.dict = new SortedDictionary<string, SettingEntry>();
-        this.forceDefaults = forceDefaults;
+        this.prioritizeSource = prioritizeSource;
 
-        if(!forceDefaults) {
+        if(!this.prioritizeSource) {
             string[] stringArray;
-            string key, value;
+            string key, value, dataType;
             string comment = null;
             object settingValue;
 
             foreach(string line in list) {
+                comment = null;
+
+
                 if(line.StartsWith("#")) {
                     comment = line.Substring(2).Trim();
                 }
                 else if(line.Contains("=")) {
                     stringArray = line.Split('=');
-                    key = stringArray[0];
+                    string s0 = stringArray[0];
+                    dataType = s0.Substring(1, 1);
+                    key = s0.Substring(s0.LastIndexOf(']') + 1);
                     value = stringArray[1];
 
                     float f;
+                    int i;
                     bool flag;
 
-                    if(float.TryParse(value, out f)) {
+                    if(dataType == "F") {
+                        float.TryParse(value, out f);
                         settingValue = f;
                     }
-                    else if(bool.TryParse(value, out flag)) {
+                    else if(dataType == "I") {
+                        int.TryParse(value, out i);
+                        settingValue = i;
+                    }
+                    else if(dataType == "B") {
+                        bool.TryParse(value, out flag);
                         settingValue = flag;
                     }
                     else {
                         settingValue = value; // String
                     }
 
+                    SettingEntry entry = new SettingEntry(settingValue, comment);
                     this.dict.Add(key, new SettingEntry(settingValue, comment));
-
-                    comment = null;
                 }
             }
         }
     }
 
-    public void save(string path, string fileName) {
-        if(this.forceDefaults) {
+    private void makeFiles() {
+        if(!Directory.Exists(this.path)) {
+            Directory.CreateDirectory(this.path);
+        }
+
+        string s = this.path + "/" + this.fileName;
+        if(!File.Exists(s)) {
+            File.Create(s);
+        }
+    }
+
+    public void save() {
+        if(this.prioritizeSource) {
             return; //Don't save, as we are forcing the code values to be used for this runtime.
         }
 
-        if(!Directory.Exists(path)) {
-            Directory.CreateDirectory(path);
-        }
+        this.makeFiles();
 
-        string s1 = path + "/" + fileName;
-        if(!File.Exists(s1)) {
-            File.Create(s1);
-        }
-
-        StreamWriter writer = new StreamWriter(path, false);
+        StreamWriter writer = new StreamWriter(this.path + "/" + this.fileName, false);
 
         string comment;
         foreach(KeyValuePair<string, SettingEntry> entry in this.dict) {
@@ -75,12 +103,15 @@ public class KeyedSettings {
 
             // Get the prefix.
             string prefix = "?";
+
             if(value is string) {
                 prefix = "S";
-            } else if( value is float) {
+            } else if(value is float) {
                 prefix = "F";
             } else if(value is bool) {
                 prefix = "B";
+            } else if(value is int) {
+                prefix = "I";
             }
 
             writer.WriteLine("[" + prefix + "]" + entry.Key + "=" + value.ToString());
@@ -88,45 +119,53 @@ public class KeyedSettings {
         writer.Close();
     }
 
+    /// <summary>
+    /// Gets a float setting.  If it can't be found, one is created with the passed default value.
+    /// </summary>
     public float getFloat(string key, float defaultValue, string comment = null) {
-        if(!this.forceDefaults) {
+        if(!this.prioritizeSource) {
             if(this.dict.ContainsKey(key)) {
-                return (float)this.dict[key].value;
-            }
-            else {
+                return Convert.ToSingle(this.dict[key].value);
+            } else {
                 this.dict.Add(key, new SettingEntry(defaultValue, comment));
             }
         }
         return defaultValue;
     }
 
+    /// <summary>
+    /// Gets an integer setting.  If it can't be found, one is created with the passed default value.
+    /// </summary>
     public int getInt(string key, int defaultValue, string comment = null) {
-        if(!this.forceDefaults) {
+        if(!this.prioritizeSource) {
             if(this.dict.ContainsKey(key)) {
                 return (int)this.dict[key].value;
-            }
-            else {
+            } else {
                 this.dict.Add(key, new SettingEntry(defaultValue, comment));
             }
         }
-        //TODO update the dict, we always want to overide comments.
         return defaultValue;
     }
 
+    /// <summary>
+    /// Gets a boolean setting.  If it can't be found, one is created with the passed default value.
+    /// </summary>
     public bool getBool(string key, bool defaultValue, string comment = null) {
-        if(!this.forceDefaults) {
+        if(!this.prioritizeSource) {
             if(this.dict.ContainsKey(key)) {
                 return (bool)this.dict[key].value;
-            }
-            else {
+            } else {
                 this.dict.Add(key, new SettingEntry(defaultValue, comment));
             }
         }
         return defaultValue;
     }
 
+    /// <summary>
+    /// Gets a string setting.  If it can't be found, one is created with the passed default value.
+    /// </summary>
     public string getString(string key, string defaultValue, string comment = null) {
-        if(!this.forceDefaults) {
+        if(!this.prioritizeSource) {
             if(this.dict.ContainsKey(key)) {
                 return (string)this.dict[key].value;
             }
@@ -137,15 +176,19 @@ public class KeyedSettings {
         return defaultValue;
     }
 
-    private struct SettingEntry {
+    public struct SettingEntry {
 
         public readonly object value;
         /// <summary> May be null. </summary>
-        public readonly string comment;
+        public string comment;
 
         public SettingEntry(object value, string comment) {
             this.value = value;
             this.comment = comment;
+        }
+
+        public string getComment() {
+            return this.comment != null ? this.comment : string.Empty;
         }
     }
 }

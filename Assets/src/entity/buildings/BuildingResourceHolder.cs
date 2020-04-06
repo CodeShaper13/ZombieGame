@@ -40,7 +40,9 @@ public abstract class BuildingResourceHolder : BuildingBase, IResourceHolder {
 
     private void hookOnChangeResources(int resources) {
         this.heldResources = resources;
-        this.resourceBar.updateProgressBar(resources);
+        if(this.resourceBar != null) {
+            this.resourceBar.updateProgressBar(resources);
+        }
     }
 
     public override void readFromNbt(NbtCompound tag) {

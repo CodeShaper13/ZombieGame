@@ -9,10 +9,18 @@ public abstract class GuiBase : MonoBehaviour {
 
     private void Awake() {
         if(this.closeButton != null) {
-            this.closeButton.onClick.AddListener(GuiManager.closeCurrentGui);
+            this.closeButton.onClick.AddListener(GuiManager.closeTopGui);
         }
 
         this.onGuiInit();
+
+        /*
+        #if UNITY_EDITOR
+            // While in dev, it's possible someone forgot to disable the GUI GameObject.
+            this.gameObject.SetActive(false);
+            Logger.logWarning("Someone forgot to disable a GUI GameObject...");
+        #endif
+        */
     }
 
     private void OnEnable() {

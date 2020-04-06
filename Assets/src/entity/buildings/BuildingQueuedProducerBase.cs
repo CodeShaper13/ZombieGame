@@ -13,16 +13,21 @@ public abstract class BuildingQueuedProducerBase : BuildingBase {
         this.trainingQueue = new List<RegisteredObject>(this.getQueueSize());
     }
 
+    private bool isTeamFull() {
+        return this.getTeam().getCurrentTroopCount(this.map) >= this.getTeam().getMaxTroopCount(this.map);
+    }
+
     protected override void preformTask(float deltaTime) {
         if(this.trainingQueue.Count != 0) {
-            bool teamHasRoom = true; //TODO this.getTeam().getTroopCount() <= this.getTeam().getMaxTroopCount();
 
-            if(teamHasRoom) {
-                this.trainingProgress += deltaTime;
+            if(this.isTeamFull()) {
+                return;
             }
 
+            this.trainingProgress += deltaTime;
+
             UnitBase nextInQueue = this.trainingQueue[0].getPrefab().GetComponent<UnitBase>();
-            if(this.trainingProgress >= nextInQueue.getData().getProductionTime() && teamHasRoom) {
+            if(this.trainingProgress >= 0) { // nextInQueue.getData().getProductionTime()) {
                 Vector2 v = Random.insideUnitCircle * 2f;
                 float i = 1.5f;
                 v.x += (v.x < 0 ? -i : i);
@@ -46,12 +51,16 @@ public abstract class BuildingQueuedProducerBase : BuildingBase {
 
     public abstract int getQueueSize();
 
+    public bool isQueueFull() {
+        return this.trainingQueue.Count >= this.getQueueSize();
+    }
+
     /// <summary>
     /// Tries to add an object to the creation queue, retuning true if it was added
     /// or false if the queue was full.
     /// </summary>
     public bool tryAddToQueue(RegisteredObject obj) {
-        if(this.trainingQueue.Count < this.getQueueSize()) {
+        if(!this.isQueueFull()) {
             this.trainingQueue.Add(obj);
             return true;
         }

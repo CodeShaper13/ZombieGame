@@ -41,7 +41,7 @@ public class TaskRepair : TaskBase<UnitBuilder> {
         if(Util.isAlive(this.building)) {
             if(this.isNextToWhackPoint()) {
                 this.moveHelper.stop();
-                this.building.increaseConstructed(true);
+                this.building.increaseConstructed(this.unit, true);
 
                 this.timeWhacking -= deltaTime;
                 if(this.timeWhacking <= 0) {
@@ -53,7 +53,12 @@ public class TaskRepair : TaskBase<UnitBuilder> {
             else {
                 this.moveHelper.setDestination(this.whackPoint);
             }
-            return this.shouldContinue();
+            bool shouldContinue = this.shouldContinue();
+            if(!shouldContinue && this is TaskConstructBuilding) {
+                // Done construction a building for the first time
+                this.building.onConstructionFinished(this.unit);
+            }
+            return shouldContinue;
         }
         else {
             return false; // End task, building was destroyed/is gone.

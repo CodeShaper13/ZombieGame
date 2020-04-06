@@ -6,10 +6,7 @@ public abstract class BuildingBase : SidedEntity {
 
     private const float BUILDING_ROT_SPEED = 250;
 
-    /// <summary>
-    /// True if the building is being constructed.  Buildings that
-    /// are still being built can not function.
-    /// </summary>
+    /// <summary> True if the building is being constructed.  Buildings that are still being built can not function. </summary>
     [SyncVar]
     private bool constructing;
     private float buildProgress;
@@ -44,6 +41,10 @@ public abstract class BuildingBase : SidedEntity {
         }
         return mask;
     }
+
+    public virtual void onConstructionFinished(UnitBuilder unit) {
+
+    } 
 
     /// <summary>
     /// Sets the building to be currently being constructed by a builder.
@@ -86,8 +87,8 @@ public abstract class BuildingBase : SidedEntity {
     /// Used to continue to construct a building or to repair it.
     /// Returns true if the building was finished on this call.
     /// </summary>
-    public bool increaseConstructed(bool deductResources) {
-        this.buildProgress += (Constants.BUILDER_CONSTRUCT_RATE * Time.deltaTime);
+    public bool increaseConstructed(UnitBuilder builder, bool deductResources) {
+        this.buildProgress += builder.buildSpeed * Time.deltaTime;
         this.setHealth((int)this.buildProgress);
 
         if(deductResources && (int)buildProgress > this.getHealth()) {
@@ -128,5 +129,9 @@ public abstract class BuildingBase : SidedEntity {
         tag.setTag("isBuilding", this.constructing);
         tag.setTag("progress", this.buildProgress);
         tag.setTag("targetRotation", this.targetRotation);
+    }
+
+    public virtual bool isValidLocation(Vector3 mousePos) {
+        return !Physics.CheckBox(mousePos, this.transform.lossyScale / 2, this.transform.rotation, Layers.GEOMETRY);
     }
 }

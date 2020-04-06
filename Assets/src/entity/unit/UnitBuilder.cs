@@ -3,7 +3,15 @@ using UnityEngine.Networking;
 
 public class UnitBuilder : UnitBase, IResourceHolder {
 
-    [SerializeField] // Debug
+    [SerializeField]
+    private int maxResourceCarry = 1;
+    [SerializeField]
+    public int collectPerStrike = 1;
+    [SerializeField]
+    public int strikeSpeed = 1;
+    [SerializeField]
+    public int buildSpeed = 1;
+
     [SyncVar(hook = "hookOnChangeResources")]
     private int heldResources;
     private ProgressBar resourceBar;
@@ -36,20 +44,12 @@ public class UnitBuilder : UnitBase, IResourceHolder {
         this.unitStats.resourcesCollected.increase(amount);
     }
 
-    public override int getAttackAmount() {
-        return 5;
-    }
-
-    public override int getMaxHealth() {
-        return 50;
-    }
-
     public int getHeldResources() {
         return this.heldResources;
     }
 
     public int getHoldLimit() {
-        return Constants.BUILDER_MAX_CARRY;
+        return this.maxResourceCarry;
     }
 
     public bool canHoldMore() {
@@ -58,10 +58,6 @@ public class UnitBuilder : UnitBase, IResourceHolder {
 
     public void setHeldResources(int amount) {
         this.heldResources = amount;
-    }
-
-    public override EntityBaseStats getData() {
-        return Constants.ED_BUILDER;
     }
 
     public override int getButtonMask() {

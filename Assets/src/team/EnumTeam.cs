@@ -7,4 +7,5 @@ public enum EnumTeam {
     BLUE = 2,
     GREEN = 3,
     PURPLE = 4,
+    BLACK = 99,
 }

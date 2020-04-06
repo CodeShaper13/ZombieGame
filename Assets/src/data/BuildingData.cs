@@ -1,7 +1,7 @@
 ﻿public struct BuildingData {
 
     private readonly string name;
-    private readonly int health;
+    private readonly int maxHealth;
     private readonly int cost;
     private readonly bool instantBuild;
 
@@ -9,7 +9,7 @@
 
     public BuildingData(string buildingName, int maxHealth, int cost, bool instantBuild) {
         this.name = buildingName;
-        this.health = maxHealth;
+        this.maxHealth = maxHealth;
         this.cost = cost;
         this.instantBuild = instantBuild;
     }
@@ -19,7 +19,7 @@
     }
 
     public int getMaxHealth() {
-        return this.health;
+        return this.maxHealth;
     }
 
     public int getCost() {

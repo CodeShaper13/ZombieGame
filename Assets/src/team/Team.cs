@@ -5,14 +5,18 @@ using UnityEngine;
 public class Team {
 
     public static Team NONE = new TeamNone(0);
-    public static Team ORANGE = new Team(1, "orange", EnumTeam.ORANGE, new Color(1f, 0.522f, 0.106f));
-    public static Team BLUE = new Team(2, "blue", EnumTeam.BLUE, Color.blue);
-    public static Team GREEN = new Team(3, "green", EnumTeam.GREEN, Color.green);
-    public static Team PURPLE = new Team(4, "purple", EnumTeam.PURPLE, new Color(0.40f, 0.07f, 0.54f));
-    /// <summary> An array of all the teams.  This does NOT include Team.NONE. </summary>
-    public static Team[] ALL_TEAMS = new Team[] { NONE, ORANGE, BLUE, GREEN, PURPLE };
+    public static Team SURVIVORS_1 = new Team(1, "orange", EnumTeam.ORANGE, new Color(1f, 0.522f, 0.106f));
+    public static Team SURVIVORS_2 = new Team(2, "blue", EnumTeam.BLUE, Color.blue);
+    public static Team SURVIVORS_3 = new Team(3, "green", EnumTeam.GREEN, Color.green);
+    public static Team SURVIVORS_4 = new Team(4, "purple", EnumTeam.PURPLE, new Color(0.40f, 0.07f, 0.54f));
+    public static Team ZOMBIES = new TeamBlack(5);
+
+    /// <summary> An array of all the teams. </summary>
+    public static Team[] ALL_TEAMS = new Team[] { NONE, SURVIVORS_1, SURVIVORS_2, SURVIVORS_3, SURVIVORS_4, ZOMBIES };
+    public static Team[] ALL_PLAYABLE_TEAMS = new Team[] { SURVIVORS_1, SURVIVORS_2, SURVIVORS_3, SURVIVORS_4 };
 
     public readonly Predicate<MapObject> predicateThisTeam;
+    public readonly Predicate<MapObject> predicateThisTeamUnit;
     public readonly Predicate<MapObject> predicateOtherTeam;
 
     private readonly int teamId;
@@ -27,6 +31,7 @@ public class Team {
         this.enumTeam = enumTeam;
 
         this.predicateThisTeam = (MapObject obj) => { return obj is SidedEntity && ((SidedEntity)obj).getTeam() == this; };
+        this.predicateThisTeamUnit = (MapObject obj) => { return this.predicateThisTeam(obj) && obj is UnitBase; };
         this.predicateOtherTeam = (MapObject obj) => { return obj is SidedEntity && ((SidedEntity)obj).getTeam() != this; };
     }
 
@@ -52,8 +57,8 @@ public class Team {
     /// <summary>
     /// Returns the maximum amount of resources that this Team can have.
     /// </summary>
-    public int getMaxResourceCount(Map map) {
-        int maxResources = Constants.STARTING_RESOURCE_CAP;
+    public virtual int getMaxResourceCount(MapBase map) {
+        int maxResources = int.MaxValue;
         foreach(SidedEntity o in map.findMapObjects(this.predicateThisTeam)) {
             if(o is BuildingStoreroom) {
                 maxResources += Constants.BUILDING_STOREROOM_RESOURCE_BOOST;
@@ -62,10 +67,14 @@ public class Team {
         return maxResources;
     }
 
+    public int getCurrentTroopCount(MapBase map) {
+        return map.findMapObjects(this.predicateThisTeamUnit).Count;
+    }
+
     /// <summary>
     /// Returns the total number of troops this team can have.
     /// </summary>
-    public int getMaxTroopCount(Map map) {
+    public virtual int getMaxTroopCount(MapBase map) {
         int i = Constants.STARTING_TROOP_CAP;
         foreach(SidedEntity o in map.findMapObjects(this.predicateThisTeam)) {
             if(o is BuildingCamp) {
@@ -78,24 +87,58 @@ public class Team {
         return i;
     }
 
-    public override bool Equals(object obj) {
-        if(obj is Team) {
-            return this == (Team)obj;
-        } else {
+
+    public bool Equals(Team p) {
+        // If parameter is null, return false.
+        if(System.Object.ReferenceEquals(p, null)) {
             return false;
         }
+
+        // Optimization for a common success case.
+        if(System.Object.ReferenceEquals(this, p)) {
+            return true;
+        }
+
+        // If run-time types are not exactly the same, return false.
+        if(this.GetType() != p.GetType()) {
+            return false;
+        }
+
+        // Return true if the fields match.
+        // Note that the base class is not invoked because it is
+        // System.Object, which defines Equals as reference equality.
+        return (this.teamId == p.teamId);
     }
 
     public override int GetHashCode() {
         return this.teamId.GetHashCode();
     }
 
-    public static bool operator ==(Team team1, Team team2) {
-        return team1.teamId == team2.teamId;
+    public static bool operator ==(Team lhs, Team rhs) {
+        // Check for null on left side.
+        if(System.Object.ReferenceEquals(lhs, null)) {
+            if(System.Object.ReferenceEquals(rhs, null)) {
+                // null == null = true.
+                return true;
+            }
+
+            // Only the left side is null.
+            return false;
+        }
+        // Equals handles case of null on right side.
+        return lhs.Equals(rhs);
     }
 
-    public static bool operator !=(Team team1, Team team2) {
-        return !(team1 == team2);
+    public static bool operator !=(Team lhs, Team rhs) {
+        return !(lhs == rhs);
+    }
+
+    public override bool Equals(object obj) {
+        if(obj is Team) {
+            return this == (Team)obj;
+        } else {
+            return false;
+        }
     }
 
     /// <summary>
@@ -112,10 +155,11 @@ public class Team {
 
     public static Team getTeamFromEnum(EnumTeam enumTeam) {
         switch (enumTeam) {
-            case EnumTeam.GREEN: return Team.GREEN;
-            case EnumTeam.PURPLE: return Team.PURPLE;
-            case EnumTeam.ORANGE: return Team.ORANGE;
-            case EnumTeam.BLUE: return Team.BLUE;
+            case EnumTeam.GREEN: return Team.SURVIVORS_3;
+            case EnumTeam.PURPLE: return Team.SURVIVORS_4;
+            case EnumTeam.ORANGE: return Team.SURVIVORS_1;
+            case EnumTeam.BLUE: return Team.SURVIVORS_2;
+            case EnumTeam.BLACK: return Team.ZOMBIES;
             case EnumTeam.NONE: default: return Team.NONE;
         }
     }
@@ -123,5 +167,18 @@ public class Team {
     private class TeamNone : Team {
 
         public TeamNone(int teamId) : base(teamId, "None", EnumTeam.NONE, Color.gray) { }
+    }
+
+    private class TeamBlack : Team {
+
+        public TeamBlack(int teamId) : base(teamId, "Black", EnumTeam.BLACK, Color.black) { }
+
+        public override int getMaxTroopCount(MapBase map) {
+            return int.MaxValue;
+        }
+
+        public override int getMaxResourceCount(MapBase map) {
+            return int.MaxValue;
+        }
     }
 }

@@ -16,21 +16,21 @@ public class NetHandlerClient : NetHandlerBase {
     }
 
     public void showAnnouncement(MessageShowAnnouncement msg) {
-        this.player.showAnnouncement(msg.message, msg.duration);
+        this.player.announcementText.showAnnouncement(msg.message, msg.duration);
     }
 
     public void changeGameState(MessageChangeGameState msg) {
-        Player.localPlayer.setGameState(msg.newState);
+        //this.player.setGameState(msg.newState);
     }
 
     public void showStatsGui(MessageShowStatsGui msg) {
         GuiUnitStats gui = (GuiUnitStats)GuiManager.openGui(GuiManager.unitStats);
         gui.set(msg);
-        Debug.Log("123");
     }
 
     private void registerMsg<T>() where T : AbstractMessageClient, new() {
-        NetworkManager.singleton.client.RegisterHandler(new T().getID(), delegate (NetworkMessage netMsg) {
+        NetworkManager.singleton.client.RegisterHandler
+            (new T().getID(), delegate (NetworkMessage netMsg) {
             T msg = netMsg.ReadMessage<T>();
             msg.processMessage(this);
         });

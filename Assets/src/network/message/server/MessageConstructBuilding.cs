@@ -9,6 +9,10 @@ public class MessageConstructBuilding : AbstractMessageServer {
     public int teamId;
     public Guid builderGuid;
 
+    // Only used when building bridges
+    public Vector3 bridgeStart;
+    public Vector3 bridgeEnd;
+
     public MessageConstructBuilding() { }
 
     public MessageConstructBuilding(Team team, RegisteredObject obj, Vector3 position, UnitBuilder builder) {
@@ -30,13 +34,13 @@ public class MessageConstructBuilding : AbstractMessageServer {
         writer.Write(this.entityId);
         writer.Write(this.position);
         writer.Write(this.teamId);
-        writer.Write(this.builderGuid.ToByteArray(), 16);
+        writer.Write(this.builderGuid);
     }
 
     public override void Deserialize(NetworkReader reader) {
         this.entityId = reader.ReadInt32();
         this.position = reader.ReadVector3();
         this.teamId = reader.ReadInt32();
-        this.builderGuid = new Guid(reader.ReadBytes(16));
+        this.builderGuid = reader.ReadGuid();
     }
 }

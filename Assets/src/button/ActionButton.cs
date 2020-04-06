@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 // Note, sub buttons do not need an ID nor do they need to be in the list.
 public class ActionButton {
@@ -24,24 +25,28 @@ public class ActionButton {
         new ActionButtonBuild("Training House", Registry.buildingTrainingHouse),
         new ActionButtonBuild("Storeroom", Registry.buildingStoreroom),
         new ActionButtonBuild("Tower", Registry.buildingCannon),
-        new ActionButtonBuild("Flag", Registry.buildingFlag)
+        new ActionButtonBuild("Flag", Registry.buildingFlag),
+        new ActionButtonBuild("Bridge", Registry.buildingBridge)
     );
 
-    public static readonly ActionButton builderHarvestResources = new ActionButton("Harvest", 2)
-        .setMainActionFunction((unit) => {
-            UnitBuilder ub = ((UnitBuilder)unit);
-            ub.setTask(new TaskHarvestNearby(ub));
+    public static readonly ActionButton builderHarvestResources = new ActionButtonRequireClick("Harvest", 2)
+        .setMainActionFunction((unit, target) => {
+            UnitBuilder ub = (UnitBuilder)unit;
+            ub.setTask(new TaskHarvestNearby(ub, (HarvestableObject)target));
+        })
+        .setValidForActionFunction((team, livingObj) => {
+            return livingObj is HarvestableObject;
         });
 
     public static readonly ActionButton builderRepair = new ActionButtonRequireClick("Repair", 3)
         .setMainActionFunction((unit, target) => {
-            UnitBuilder ub = ((UnitBuilder)unit);
+            UnitBuilder ub = (UnitBuilder)unit;
             ub.setTask(new TaskRepair(ub, (BuildingBase)target)); //TODO
         })
-        .setValidForActionFunction((team, entity) => {
-            if(entity.getTeam() == team && entity is BuildingBase) {
-                BuildingBase building = (BuildingBase)entity;
-                if(!building.isConstructing() && building.getHealth() < building.getMaxHealth()) {
+        .setValidForActionFunction((team, livingObj) => {
+            if(livingObj is BuildingBase) {
+                BuildingBase building = (BuildingBase)livingObj;
+                if(!building.isConstructing() && building.getTeam() == team && building.getHealth() < building.getMaxHealth()) {
                     return true;
                 }
             }
@@ -73,13 +78,12 @@ public class ActionButton {
     public static readonly ActionButton buildingProducerCollect = new ActionButton("Collect", 16)
         .setMainActionFunction((building) => {
             BuildingResourceHolder holder = (BuildingResourceHolder)building;
-            holder.map.increaceResources(holder.getTeam(), holder.getHeldResources());
-            holder.setHeldResources(0);
+            holder.setHeldResources(holder.map.transferResources(holder.getTeam(), holder.getHeldResources()));
         });
 
     public static readonly ActionButton train = new ActionButtonParent("Train", 17,
         new ActionButtonTrain(Registry.unitSoldier),
-        new ActionButtonTrain(Registry.unitArcher),
+        new ActionButtonTrain(Registry.unitGunner),
         new ActionButtonTrain(Registry.unitBuilder))
         .setShouldDisableFunction(functionIsConstructing);
 

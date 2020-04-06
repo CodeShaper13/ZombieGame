@@ -3,7 +3,10 @@
 [RequireComponent(typeof(SpriteRenderer))]
 public class AttackTargetEffect : MonoBehaviour {
 
-    private const float HEIGHT = 0.1f;
+    [SerializeField]
+    private Vector2 targetOffset;
+    [SerializeField]
+    private float timeVisible;
 
     private SpriteRenderer sr;
     private float f;
@@ -11,16 +14,15 @@ public class AttackTargetEffect : MonoBehaviour {
 
     private void Awake() {
         this.sr = this.transform.GetComponent<SpriteRenderer>();
-        this.transform.position.setY(HEIGHT);
         this.setAlpha(0);
     }
 
     private void Update() {
-        if(!Main.instance().isPaused()) {
+        if(!Pause.isPaused()) {
             if(Util.isAlive(this.target)) {
                 this.f -= Time.deltaTime;
-                this.func();
-                if(this.f > 0) {
+                this.centerAroundTarget();
+                if(this.f >= -1) {
                     this.setAlpha(this.f);
                 }
             } else {
@@ -32,18 +34,16 @@ public class AttackTargetEffect : MonoBehaviour {
 
     public void setTarget(SidedEntity target) {
         this.target = target;
-        float size = target.getSizeRadius() * 2 * 1.5f;
-        this.transform.localScale = new Vector3(size, size, size);
-        this.func();
+        this.centerAroundTarget();
         this.setAlpha(1);
-        this.f = 2f;
+        this.f = this.timeVisible;
     }
 
     private void setAlpha(float alpha) {
-        this.sr.color = sr.color.setA(alpha);
+        this.sr.color = sr.color.setAlpha(alpha);
     }
 
-    private void func() {
-        this.transform.position = target is UnitBase ? ((UnitBase)target).getFootPos() : target.getPos().setY(HEIGHT);
+    private void centerAroundTarget() {
+        this.transform.position = this.target.transform.position + new Vector3(this.targetOffset.x, this.targetOffset.y);
     }
 }

@@ -1,24 +1,23 @@
 ﻿public class ActionButtonTrain : ActionButtonChild {
 
     private readonly string buttonText;
-    private readonly EntityBaseStats entityData;
+    private readonly UnitData unitData;
 
     public ActionButtonTrain(RegisteredObject obj) : base(string.Empty) {
-        this.entityData = obj.getPrefab().GetComponent<UnitBase>().getData();
-        this.buttonText = this.entityData.getUnitTypeName() + " (" + this.entityData.cost + ")";
+        this.unitData = obj.getPrefab().GetComponent<UnitBase>().unitData;
+        this.buttonText = this.unitData.unitName + " (" + 0 + ")";
 
         this.setMainActionFunction((unit) => {
             BuildingTrainingHouse trainingHouse = (BuildingTrainingHouse)unit;
             if(trainingHouse.tryAddToQueue(obj)) {
                 // Remove resources
-                trainingHouse.map.reduceResources(trainingHouse.getTeam(), this.entityData.cost);
-                //trainingHouse.getTeam().reduceResources(this.entityData.cost);
+                trainingHouse.map.reduceResources(trainingHouse.getTeam(), 0);
             }
         });
 
         this.setShouldDisableFunction((entity) => {
-            return this.entityData.cost > Player.localPlayer.currentTeamResources;
-            //return this.entityData.cost > entity.getTeam().getResources();
+            BuildingTrainingHouse trainingHouse = ((BuildingTrainingHouse)entity);
+            return 0 > Player.localPlayer.currentTeamResources || trainingHouse.isQueueFull();
         });
     }
 

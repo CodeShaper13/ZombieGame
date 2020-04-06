@@ -10,9 +10,13 @@ public class AttackArrow : AttackBase {
 
     protected override void preformAttack(LivingObject target) {
         this.unit.map.fireProjectile(
-            this.unit.transform.position + new Vector3(0, 1f, 0),
+            this.unit.transform.position,
             this.unit,
             this.unit.getAttackAmount(),
             target);
+    }
+
+    protected override float getAttackRate() {
+        return Constants.AI_RANGE_ATTACK_RATE;
     }
 }

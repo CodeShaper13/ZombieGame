@@ -14,8 +14,6 @@ public abstract class SelectedDisplayerBase : MonoBehaviour {
         this.setUIVisible(false);
     }
 
-    public virtual void onUpdate() { }
-
     /// <summary>
     /// Sets if the UI is visible.
     /// </summary>

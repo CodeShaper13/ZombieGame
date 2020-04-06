@@ -3,7 +3,7 @@ using UnityEngine.Networking;
 using System.Collections.Generic;
 
 /// <summary>
-/// A list of all the Prefabs that will be spawned.  Theses
+/// A list of all the Prefabs that will be spawned.  These
 /// Prefabs are registered to the Network manager to be spawned
 /// over the network.
 /// </summary>
@@ -17,9 +17,11 @@ public class References : MonoBehaviour {
     public GameObject prefabUnitSoldier;
     public GameObject prefabUnitArcher;
     public GameObject prefabUnitBuilder;
+    public GameObject prefabUnitMedic;
+    public GameObject prefabZombie;
 
     [Header("Projectiles")]
-    public GameObject prefabProjectileArrow;
+    public GameObject prefabProjectileBullet;
 
     [Header("Buildings")]
     public GameObject prefabBuildingCamp;
@@ -29,28 +31,17 @@ public class References : MonoBehaviour {
     public GameObject prefabBuildingStoreroom;
     public GameObject prefabBuildingTrainingHouse;
     public GameObject prefabBuildingWorkshop;
-    public GameObject prefabBuildingWall;
+    public GameObject prefabBuildingBridge;
 
     [Header("Harvestables")]
-    public GameObject prefabHarvestableTree;
-    public GameObject prefabHarvestableRock;
+    //public GameObject prefabHarvestableRock;
 
     [Header("UI")] // (Not registered)
     public GameObject prefabPlaceObjectButton;
 
-    [Header("Text")]
-    public TextAsset maleNames;
-    public TextAsset femaleNames;
-    public TextAsset lastNames;
-    public TextAsset constants;
-
-    [Header("Player")] // (Not registered)
-    public GameObject prefabUnitDestinationEffect;
-    public GameObject prefabAttackTargetEffect;
+    public GameObject prefabGameModeTimer;
 
     [Header("")]
-
-    public GameObject mapPrefab;
 
     // Other:
     public GameObject prefabHealthBarEffect;
@@ -58,6 +49,8 @@ public class References : MonoBehaviour {
     [Header("GUI Objects")]
     public GuiBase guiPausedObject;
     public GuiBase guiUnitStatsObject;
+    public GuiBase guiCampaignSelect;
+    public GuiBase guiCampaignWin;
 
     private void Awake() {
         References.list = this;
@@ -65,8 +58,10 @@ public class References : MonoBehaviour {
         this.add(this.prefabUnitSoldier);
         this.add(this.prefabUnitArcher);
         this.add(this.prefabUnitBuilder);
+        //this.add(this.prefabUnitMedic);
+        this.add(this.prefabZombie);
 
-        this.add(this.prefabProjectileArrow);
+        this.add(this.prefabProjectileBullet);
 
         this.add(this.prefabBuildingCamp);
         this.add(this.prefabBuildingCannon);
@@ -75,14 +70,9 @@ public class References : MonoBehaviour {
         this.add(this.prefabBuildingStoreroom);
         this.add(this.prefabBuildingTrainingHouse);
         this.add(this.prefabBuildingWorkshop);
-        this.add(this.prefabBuildingWall);
+        this.add(this.prefabBuildingBridge);
 
-        this.add(this.prefabHarvestableTree);
-        this.add(this.prefabHarvestableRock);
-
-        this.add(this.prefabHealthBarEffect);
-
-        this.add(this.mapPrefab);
+        this.add(this.prefabGameModeTimer);
     }
 
     public void registerPrefabsToNetworkManager(NetworkManager networkManager) {

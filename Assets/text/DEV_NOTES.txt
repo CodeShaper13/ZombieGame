@@ -1,0 +1,14 @@
+Layers:
+
+0 = TileMap(Floor)
+1 = Harvestables
+3 = TileMap(Objects)
+5 = TileMap(Decals)
+
+14 = Projectiles
+
+15 = Units
+
+60 = Healthbar
+
+70 = Fog

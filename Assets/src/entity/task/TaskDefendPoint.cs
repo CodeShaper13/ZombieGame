@@ -3,54 +3,61 @@ using UnityEngine;
 
 public class TaskDefendPoint : TaskAttackNearby {
 
-    private Vector3 defendPoint;
+    /// <summary>
+    /// The point the unit is defending.
+    /// </summary>
+    private Vector3 pointToDefend;
 
     public TaskDefendPoint(UnitFighting unit) : base(unit) {
-        defendPoint = this.unit.transform.position;
+        this.pointToDefend = this.unit.transform.position;
     }
 
     public override void drawDebug() {
         base.drawDebug();
 
         // Draw a line to mark the point and a line to conenct the unit to it's point.
-        GLDebug.DrawLine(defendPoint, defendPoint + Vector3.up * 4, Color.black);
-        GLDebug.DrawLine(unit.getPos(), defendPoint, Color.gray);
-        foreach(Vector3 v in Direction.CARDINAL) {
-            GLDebug.DrawLine(defendPoint, defendPoint + (v * Constants.AI_FIGHTING_DEFEND_RANGE), Color.black);
+        GLDebug.DrawLine(pointToDefend, pointToDefend + Vector3.up * 4, Color.black);
+        GLDebug.DrawLine(unit.getPos(), pointToDefend, Color.gray);
+        foreach(Direction d in Direction.horizontal) {
+            GLDebug.DrawLine(pointToDefend, pointToDefend + (d.vector * Constants.AI_FIGHTING_DEFEND_RANGE), Color.black);
         }
     }
 
-    protected override void preformAttack() {
-        if(Util.isAlive(target) && this.withinArea()) {
-            func();
-        }
-        else {
+    protected override bool preformAttack() {
+        if(Util.isAlive(target) && this.isTargetWithinArea()) {
+            this.func();
+        } else {
             // We have no target or it is out of range, find a new one.
-            target = findTarget();
+            this.target = findTarget();
             if(target == null) {
                 // Move back to the defend point.
-                moveHelper.setDestination(defendPoint, 0.5f);
+                this.moveHelper.setDestination(pointToDefend, 0.5f);
             }
         }
+
+        return Util.isAlive(this.target);
     }
 
     protected override SidedEntity findTarget() {
-        return this.findEntityOfType<SidedEntity>(defendPoint, Constants.AI_FIGHTING_DEFEND_RANGE);
+        return this.findEntityOfType<SidedEntity>(pointToDefend, Constants.AI_FIGHTING_DEFEND_RANGE);
     }
 
-    private bool withinArea() {
-        return Vector2.Distance(defendPoint, target.getPos()) < Constants.AI_FIGHTING_DEFEND_RANGE;
+    /// <summary>
+    /// Returns true if the target is within the defend area.
+    /// </summary>
+    private bool isTargetWithinArea() {
+        return Vector2.Distance(pointToDefend, target.getPos()) < Constants.AI_FIGHTING_DEFEND_RANGE;
     }
 
     public override void readFromNbt(NbtCompound tag) {
         base.readFromNbt(tag);
 
-        this.defendPoint = tag.getVector3("defendPoint");
+        this.pointToDefend = tag.getVector3("defendPoint");
     }
 
     public override void writeToNbt(NbtCompound tag) {
         base.writeToNbt(tag);
 
-        tag.setTag("defendPoint", this.defendPoint);
+        tag.setTag("defendPoint", this.pointToDefend);
     }
 }

@@ -1,35 +1,33 @@
-﻿public class TaskIdle : TaskAttackNearby {
+﻿using UnityEngine;
+
+public class TaskIdle : TaskBase<UnitBase>, ICancelableTask {
 
     public TaskIdle(UnitBase unit) : base(unit) { }
 
     public override bool preform(float deltaTime) {
-        if (Util.isAlive(this.target)) {
-            this.func();
-        }
-        else {
-            this.target = null;
-            this.moveHelper.stop();
-        }
-
         return true;
     }
 
+    // TODO is not called
     public override void onDamage(MapObject dealer) {
-        if (dealer is Bullet) {
+        // If a unit is damaged while idling, attack whatever damaged it.
+        Debug.Log("hit!");
+        if (dealer is Projectile) {
             SidedEntity shooter = ((Projectile)dealer).getShooter();
             if (this.unit.getTeam() != shooter.getTeam()) {
-                this.target = shooter;
+                this.setToAttack(shooter);
             }
         }
         else if (dealer is SidedEntity) {
-            SidedEntity entity = (SidedEntity)dealer;
-            if (this.unit.getTeam() != entity.getTeam()) {
-                this.target = entity;
+            SidedEntity attacker = (SidedEntity)dealer;
+            if (this.unit.getTeam() != attacker.getTeam()) {
+                this.setToAttack(attacker);
             }
         }
     }
 
-    protected override SidedEntity findTarget() {
-        return null; // No target should be found, this is called in the constructor.
+    private void setToAttack(LivingObject target) {
+        Debug.Log("changing task");
+        this.unit.setTask(new TaskAttackNearby(this.unit, target));
     }
 }

@@ -4,9 +4,9 @@ using UnityEngine.Networking;
 
 public class NetHandlerServer : NetHandlerBase {
 
-    private Map map;
+    private MapBase map;
 
-    public NetHandlerServer(Map map) {
+    public NetHandlerServer(MapBase map) {
         this.map = map;
     }
 
@@ -31,7 +31,7 @@ public class NetHandlerServer : NetHandlerBase {
     }
 
     public void removeEntity(MessageRemoveEntity msg) {
-        Map.instance.removeMapObject(msg.gameObj.GetComponent<MapObject>());
+        MapBase.instance.removeMapObject(msg.gameObj.GetComponent<MapObject>());
     }
 
     public void moveObject(MessageSetObjectPostion msg) {
@@ -79,6 +79,10 @@ public class NetHandlerServer : NetHandlerBase {
             UnitBuilder builder = map.findMapObjectFromGuid<UnitBuilder>(msg.builderGuid);
             builder.setTask(new TaskConstructBuilding(builder, newBuilding));
             builder.unitStats.buildingsBuilt.increase();
+        }
+
+        if(newBuilding is BuildingBridge) {
+
         }
 
         instructions.spawn();

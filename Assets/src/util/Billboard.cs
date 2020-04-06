@@ -2,10 +2,15 @@
 
 public class Billboard : MonoBehaviour {
 
+    private Camera mainCamera;
+
+    private void Start() {
+        this.mainCamera = Camera.main;
+    }
+
     private void LateUpdate() {
-        Player pc = Player.localPlayer;
-        if(pc != null) {
-            this.transform.rotation = pc.playerCamera.transform.rotation;
+        if(this.mainCamera != null) {
+            this.transform.rotation = this.mainCamera.transform.rotation;
         }
     }
 }
